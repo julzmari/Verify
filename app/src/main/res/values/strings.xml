@@ -3,4 +3,10 @@
     <string name="log_in_txt">Log In</string>
     <string name="logo">logo</string>
     <string name="register_txt">Register</string>
+    <string name="create_account">Create an Account</string>
+    <string name="email_txt">Email</string>
+    <string name="password_txt">Password</string>
+    <string name="confirm_password_txt">Confirm Password</string>
+    <string name="already_have_an_account_log_in_txt">Already have an account? Log In</string>
+    <string name="company_organization_name_txt">Company/Organization Name</string>
 </resources>
