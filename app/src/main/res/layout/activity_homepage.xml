@@ -6,66 +6,65 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <ScrollView
-        android:id="@+id/r79ivjrqxz8l"
+        android:id="@+id/homepage_scrollbar"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:gravity="center_horizontal"
-        android:background="#103F26">
+        android:background="#103F26"
+        android:gravity="center_horizontal|center_vertical">
+
         <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
             android:orientation="vertical">
 
             <ImageView
-                android:id="@+id/rume3bwx6c7"
-                android:layout_width="268dp"
+                android:id="@+id/hompage_img_logo"
+                android:layout_width="310dp"
                 android:layout_height="366dp"
-                android:layout_marginBottom="170dp"
+                android:layout_marginTop="50dp"
+                android:layout_marginBottom="100dp"
+                android:contentDescription="@string/logo"
                 android:scaleType="fitXY"
                 android:src="@drawable/location" />
 
             <LinearLayout
-                android:id="@+id/r01m0r2cdoun6"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/cr10bffffff"
-                android:paddingVertical="9dp"
+                android:id="@+id/login_register_ll2"
+                android:layout_width="348dp"
+                android:layout_height="176dp"
+                android:layout_marginHorizontal="26dp"
                 android:layout_marginBottom="53dp"
-                android:layout_marginHorizontal="26dp"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/rjko05v098xj"
-                    android:textColor="#103F26"
-                    android:textSize="22sp"
-                    android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingVertical="9dp">
+
+                <Button
+                    android:id="@+id/homepage_login_btn"
                     android:layout_width="match_parent"
+                    android:layout_height="25dp"
+                    android:layout_marginBottom="30dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Log In"
-                    />
-            </LinearLayout>
-            <LinearLayout
-                android:id="@+id/rh2zpsoo5w9n"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/cr10bffffff"
-                android:paddingVertical="9dp"
-                android:layout_marginBottom="60dp"
-                android:layout_marginHorizontal="26dp"
-                android:orientation="vertical">
-                <TextView
-                    android:id="@+id/rwmtcj3gucn"
+                    android:backgroundTint="#FFFEFE"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/log_in_txt"
                     android:textColor="#103F26"
-                    android:textSize="22sp"
-                    android:layout_height="wrap_content"
+                    android:textSize="20sp" />
+
+                <Button
+                    android:id="@+id/homepage_register_btn"
                     android:layout_width="match_parent"
+                    android:layout_height="25dp"
                     android:layout_weight="1"
-                    android:gravity="center"
-                    android:text="Register"
-                    />
+                    android:backgroundTint="#F8F8F8"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/register_txt"
+                    android:textColor="#103F26"
+                    android:textSize="20sp" />
+
             </LinearLayout>
+
         </LinearLayout>
     </ScrollView>
 </LinearLayout>
