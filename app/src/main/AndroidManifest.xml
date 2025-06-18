@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.mobdeve.s18.verify">
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
 
     <application
         android:allowBackup="true"
@@ -16,7 +18,7 @@
 
         <activity
             android:name=".Homepage"
-            android:exported="true"> <!-- 👈 REQUIRED for Android 12+ -->
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -25,8 +27,21 @@
 
         <activity android:name=".Register" android:exported="false"
             android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".EmployeeDashboard" android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".ManageUser" android:exported="false"
+        android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".Settings" android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".AdminSettings" android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".AddUser" android:exported="false"
+            android:windowSoftInputMode="adjustResize"/>
 
+        <activity android:name=".ChangePassword" />
+        <activity android:name=".AdminChangePassword" />
 
     </application>
 
 </manifest>
+
