@@ -11,10 +11,14 @@ class Homepage : AppCompatActivity() {
         setContentView(R.layout.activity_homepage)
 
         val registerButton = findViewById<Button>(R.id.homepage_register_btn)
+        val loginButton = findViewById<Button>(R.id.homepage_login_btn)
 
         registerButton.setOnClickListener {
-            val intent = Intent(this, Register::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, Register::class.java))
+        }
+
+        loginButton.setOnClickListener {
+            startActivity(Intent(this, Login::class.java))
         }
     }
 }

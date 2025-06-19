@@ -25,6 +25,27 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".Login"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize">
+
+        </activity>
+
+        <activity
+            android:name=".ForgotPassword"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize">
+
+        </activity>
+
+        <activity
+            android:name=".AdminDashboardActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize">
+
+        </activity>
+
         <activity android:name=".Register" android:exported="false"
             android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".EmployeeDashboard" android:exported="false"
