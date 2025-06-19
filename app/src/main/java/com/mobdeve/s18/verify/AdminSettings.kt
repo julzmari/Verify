@@ -65,7 +65,7 @@ class AdminSettings : AppCompatActivity() {
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.nav_home -> {
-                    //startActivity(Intent(this, AdminDashboard::class.java))
+                    startActivity(Intent(this, AdminDashboardActivity::class.java))
                     true
                 }
                 R.id.nav_history -> true

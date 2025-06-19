@@ -1,5 +1,6 @@
 package com.mobdeve.s18.verify
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -11,6 +12,7 @@ import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.views.overlay.Marker
 import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
+import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class AdminDashboardActivity : AppCompatActivity() {
 
@@ -62,6 +64,31 @@ class AdminDashboardActivity : AppCompatActivity() {
             mapView.overlays.add(marker)
             mapView.invalidate()
         }
+
+        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
+
+        bottomNav.setOnItemSelectedListener  { item ->
+           when (item.itemId) {
+           //     R.id.nav_home -> {
+           //         startActivity(Intent(this, HomeActivity::class.java))
+           //         true
+           //     }
+           //     R.id.nav_history -> {
+          //          startActivity(Intent(this, HistoryActivity::class.java))
+           //         true
+          //      }
+                R.id.nav_users -> {
+                    startActivity(Intent(this, ManageUser::class.java))
+                    true
+                }
+                R.id.nav_settings -> {
+                    startActivity(Intent(this, AdminSettings::class.java))
+                    true
+                }
+                else -> false
+            }
+        }
+
     }
 
     override fun onResume() {
