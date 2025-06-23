@@ -4,10 +4,11 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:background="@drawable/rounded_white_bg"
-    android:orientation="vertical"
     android:elevation="8dp"
+    android:gravity="center"
+    android:orientation="vertical"
     android:padding="20dp"
-    android:gravity="center">
+    android:textAlignment="center">
 
     <ImageView
         android:id="@+id/popup_image"
@@ -20,20 +21,28 @@
         android:id="@+id/popup_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Location: DLSU"
-        android:layout_marginTop="10dp" />
+        android:layout_marginTop="10dp"
+        android:text="Location: DLSU" />
 
     <TextView
         android:id="@+id/popup_datetime"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Date: June 14, 2025 12:00 PM"
-        android:layout_marginTop="4dp" />
+        android:layout_marginTop="4dp"
+        android:text="Date: June 14, 2025 12:00 PM" />
+
+    <TextView
+        android:id="@+id/popup_status"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Status: Delivery"
+        android:textAlignment="center" />
 
     <Button
         android:id="@+id/btn_close"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Close"
-        android:layout_marginTop="16dp" />
+        android:layout_marginTop="16dp"
+        android:text="Close" />
 </LinearLayout>
