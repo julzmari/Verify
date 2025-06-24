@@ -13,13 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.mobdeve.s18.verify.R
-import java.io.ByteArrayOutputStream
 import java.nio.ByteBuffer
-import java.text.SimpleDateFormat
-import java.util.Locale
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -28,6 +23,7 @@ class UserCamera : AppCompatActivity() {
     private lateinit var previewView: PreviewView
     private lateinit var cameraExecutor: ExecutorService
     private var imageCapture: ImageCapture? = null
+    private var isBackCamera = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,6 +42,21 @@ class UserCamera : AppCompatActivity() {
         captureBtn.setOnClickListener {
             takePhoto()
         }
+
+        val switchCamBtn = findViewById<View>(R.id.btnSwitchCam)
+        switchCamBtn.setOnClickListener {
+            switchCamera()
+        }
+
+        val backBtn = findViewById<View>(R.id.btnBack)
+        backBtn.setOnClickListener {
+            finish()
+        }
+    }
+
+    private fun switchCamera() {
+        isBackCamera = !isBackCamera
+        startCamera()
     }
 
     private fun startCamera() {
@@ -59,7 +70,13 @@ class UserCamera : AppCompatActivity() {
 
             imageCapture = ImageCapture.Builder().build()
 
-            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            var cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            if (isBackCamera) {
+                cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+            } else {
+                cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+            }
 
             try {
                 cameraProvider.unbindAll()
