@@ -8,5 +8,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="green_primary">#103F26</color>
+    <color name="Delivery">#4CAF50</color>
 
 </resources>

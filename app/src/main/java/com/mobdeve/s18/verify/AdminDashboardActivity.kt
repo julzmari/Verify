@@ -40,8 +40,8 @@ class AdminDashboardActivity : AppCompatActivity() {
 
         // Dummy data
         userEntries = listOf(
-            UserEntry("user1", "DLSU Manila", "June 14, 2025 12:00PM", 14.5646, 120.9936),
-            UserEntry("user2", "BGC, Taguig", "June 14, 2025 1:20PM", 14.5515, 121.0490)
+            UserEntry("user1", "DLSU Manila", "June 14, 2025 12:00PM", 14.5646, 120.9936, "Delivery"),
+            UserEntry("user2", "BGC, Taguig", "June 14, 2025 1:20PM", 14.5515, 121.0490, "Delivery")
         )
 
         recyclerView.layoutManager = LinearLayoutManager(this)
@@ -56,7 +56,7 @@ class AdminDashboardActivity : AppCompatActivity() {
             val marker = Marker(mapView).apply {
                 position = userLocation
                 title = user.username
-                subDescription = user.locationName
+                subDescription = user.locationName + " - " + user.status
                 setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                 icon = ContextCompat.getDrawable(this@AdminDashboardActivity, org.osmdroid.library.R.drawable.marker_default)
             }
@@ -73,10 +73,10 @@ class AdminDashboardActivity : AppCompatActivity() {
            //         startActivity(Intent(this, HomeActivity::class.java))
            //         true
            //     }
-           //     R.id.nav_history -> {
-          //          startActivity(Intent(this, HistoryActivity::class.java))
-           //         true
-          //      }
+                R.id.nav_history -> {
+                    startActivity(Intent(this, SubmissionHistory::class.java))
+                    true
+                }
                 R.id.nav_users -> {
                     startActivity(Intent(this, ManageUser::class.java))
                     true
