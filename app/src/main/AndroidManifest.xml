@@ -2,10 +2,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.mobdeve.s18.verify">
+
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
 
-
     <application
+        android:name=".VerifiApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -25,44 +26,17 @@
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".Login"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize">
-
-        </activity>
-
-        <activity
-            android:name=".ForgotPassword"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize">
-
-        </activity>
-
-        <activity
-            android:name=".AdminDashboardActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize">
-
-        </activity>
-
-        <activity android:name=".Register" android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".EmployeeDashboard" android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".ManageUser" android:exported="false"
-        android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".Settings" android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".AdminSettings" android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".AddUser" android:exported="false"
-            android:windowSoftInputMode="adjustResize"/>
-
+        <activity android:name=".Login" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".ForgotPassword" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".AdminDashboardActivity" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".Register" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".EmployeeDashboard" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".ManageUser" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".Settings" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".AdminSettings" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".AddUser" android:exported="false" android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".ChangePassword" />
         <activity android:name=".AdminChangePassword" />
-
     </application>
 
 </manifest>
-

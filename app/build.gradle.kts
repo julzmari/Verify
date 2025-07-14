@@ -35,9 +35,15 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+
+
 }
 
 dependencies {
+    implementation("io.github.jan-tennert.supabase:gotrue-kt:1.4.2")
+    implementation("io.github.jan-tennert.supabase:postgrest-kt:1.4.2")
+    implementation("io.github.jan-tennert.supabase:storage-kt:1.4.2")
+
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.play.services.maps)
@@ -49,4 +55,5 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
+
 }
