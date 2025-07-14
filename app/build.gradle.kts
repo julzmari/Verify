@@ -45,6 +45,8 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:1.4.2")
     implementation("io.github.jan-tennert.supabase:postgrest-kt:1.4.2")
     implementation("io.github.jan-tennert.supabase:storage-kt:1.4.2")
+    implementation("io.ktor:ktor-client-okhttp:2.3.7")
+
 
 
     implementation("com.github.bumptech.glide:glide:4.16.0")
