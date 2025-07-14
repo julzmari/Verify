@@ -34,7 +34,7 @@
                 android:id="@+id/tvLocation"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="De La Salle Univeristy, Manila, Philippines"
+                android:text="De La Salle University, Manila, Philippines"
                 android:textColor="#F6F3F3" />
 
             <TextView
@@ -45,6 +45,17 @@
                 android:text="June 14, 2025   12:00:40PM"
                 android:textColor="#DDDDDD"
                 android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/Delivery"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:text="Delivery"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
 
         </LinearLayout>
 

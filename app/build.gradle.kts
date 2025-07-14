@@ -39,6 +39,8 @@ android {
 
 }
 
+val cameraxVersion = "1.3.0"
+
 dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:1.4.2")
     implementation("io.github.jan-tennert.supabase:postgrest-kt:1.4.2")
@@ -52,6 +54,20 @@ dependencies {
     implementation(libs.androidx.appcompat)
     implementation ("org.osmdroid:osmdroid-android:6.1.10")
     implementation(libs.material)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+
+    // CameraX
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
+    implementation(libs.androidx.camera.extensions)
+
+    // Location services
+    implementation("com.google.android.gms:play-services-location:21.3.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

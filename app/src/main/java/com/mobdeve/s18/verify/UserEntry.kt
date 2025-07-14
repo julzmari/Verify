@@ -7,5 +7,6 @@ data class UserEntry(
     val locationName: String,
     val datetime: String,
     val latitude: Double,
-    val longitude: Double
+    val longitude: Double,
+    val status: String
 ) : Serializable
