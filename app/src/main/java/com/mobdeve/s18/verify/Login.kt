@@ -2,58 +2,57 @@ package com.mobdeve.s18.verify
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import io.github.jan.supabase.gotrue.GoTrue
+import io.github.jan.supabase.gotrue.providers.builtin.Email
+import kotlinx.coroutines.launch
 
-class Login: AppCompatActivity() {
+class Login : AppCompatActivity() {
+
+    private lateinit var emailEditText: EditText
+    private lateinit var passwordEditText: EditText
+    private lateinit var loginButton: Button
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
 
-        val registerText = findViewById<TextView>(R.id.login_txt_loginQuestion)
-        registerText.setOnClickListener {
-            val intent = Intent(this, Register::class.java)
-            startActivity(intent)
-        }
-
-        val forgotText = findViewById<TextView>(R.id.login_text_forgotpw)
-        forgotText.setOnClickListener {
-            val intent = Intent(this, ForgotPassword::class.java)
-            startActivity(intent)
-        }
-
-
-        val emailInput = findViewById<EditText>(R.id.login_txt_email_input)
-        val passwordInput = findViewById<EditText>(R.id.login_txt_pw_input)
-        val loginButton = findViewById<Button>(R.id.btn_login)
+        emailEditText = findViewById(R.id.login_txt_email_input)
+        passwordEditText = findViewById(R.id.login_txt_pw_input)
+        loginButton = findViewById(R.id.btn_login)
 
         loginButton.setOnClickListener {
-            val email = emailInput.text.toString().trim()
-            val password = passwordInput.text.toString().trim()
+            val email = emailEditText.text.toString()
+            val password = passwordEditText.text.toString()
 
-            when {
-                email == "admin@gmail.com" && password == "admin" -> {
-                    val intent = Intent(this, AdminDashboardActivity::class.java)
-                    startActivity(intent)
-                }
-                email == "user@gmail.com" && password == "user" -> {
-                    val intent = Intent(this, EmployeeDashboard::class.java)
-                    startActivity(intent)
-                }
-                else -> {
-                    Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
-                }
+            if (email.isBlank() || password.isBlank()) {
+                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+            } else {
+                loginUser(email, password)
             }
         }
     }
-    @Suppress("MissingSuperCall")
-    override fun onBackPressed() {
-        val intent = Intent(this, Homepage::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
-        startActivity(intent)
-        finish()
+
+    private fun loginUser(email: String, password: String) {
+        val supabase = (application as VerifiApp).supabase
+        val auth = supabase.pluginManager.getPlugin(GoTrue)
+
+        lifecycleScope.launch {
+            try {
+                val session = auth.loginWith(Email) {
+                    this.email = email
+                    this.password = password
+                }
+                Toast.makeText(this@Login, "Login successful", Toast.LENGTH_SHORT).show()
+                startActivity(Intent(this@Login, EmployeeDashboard::class.java))
+                finish()
+            } catch (e: Exception) {
+                Toast.makeText(this@Login, "Login failed: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
     }
 }
