@@ -7,10 +7,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
+import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.UserEntry
 import org.osmdroid.config.Configuration
 
-class SubmissionHistory : AppCompatActivity() {
+class SubmissionHistory :BaseActivity() {
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var userEntries: List<UserEntry>
@@ -18,9 +19,27 @@ class SubmissionHistory : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+
+
+
         Configuration.getInstance().load(applicationContext, getSharedPreferences("osmdroid", MODE_PRIVATE))
 
         setContentView(R.layout.activity_submissionhistory)
+        val app = applicationContext as VerifiApp
+        val role = app.authorizedRole
+
+        val bottomNavbar = findViewById<BottomNavigationView>(R.id.bottomNav)
+
+        if (role == "worker") {
+            bottomNavbar.inflateMenu(R.menu.bottom_navbar)
+        } else {
+            bottomNavbar.inflateMenu(R.menu.bottom_navbar2)
+        }
+        setupBottomNavigation(bottomNavbar, R.id.nav_history)
+
+
+        // Optional: Set correct nav item as selected
+        //bottomNavbar.selectedItemId = R.id.nav_history
 
         recyclerView = findViewById(R.id.submission_history_recyclerView)
 
@@ -33,19 +52,19 @@ class SubmissionHistory : AppCompatActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = UserEntryAdapter(userEntries) {  }
 
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    startActivity(Intent(this, EmployeeDashboard::class.java))
-                    true
-                }
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, Settings::class.java))
-                    true
-                }
-                else -> false
-            }
-        }
+ //       val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
+//        bottomNav.setOnItemSelectedListener { item ->
+//            when (item.itemId) {
+//                R.id.nav_home -> {
+//                    startActivity(Intent(this, EmployeeDashboard::class.java))
+//                    true
+//                }
+//                R.id.nav_settings -> {
+//                    startActivity(Intent(this, Settings::class.java))
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
     }
 }

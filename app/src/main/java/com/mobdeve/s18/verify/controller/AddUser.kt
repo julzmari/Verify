@@ -24,7 +24,7 @@ import kotlinx.datetime.Clock
 
 
 
-class AddUser : AppCompatActivity() {
+class AddUser : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_user)
@@ -37,6 +37,8 @@ class AddUser : AppCompatActivity() {
         val addUserButton = findViewById<Button>(R.id.addUser)
         val returnButton = findViewById<TextView>(R.id.returnText)
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
+        setupBottomNavigation(bottomNav, R.id.nav_users)
+
         val roleAdapter = ArrayAdapter.createFromResource(
             this,
             R.array.user_roles, // reference to the string-array
@@ -49,27 +51,27 @@ class AddUser : AppCompatActivity() {
             startActivity(Intent(this, ManageUser::class.java))
         }
 
-        bottomNav.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.nav_home -> {
-                    startActivity(Intent(this, AdminDashboardActivity::class.java))
-                    true
-                }
-                R.id.nav_history -> {
-                    startActivity(Intent(this, SubmissionHistory::class.java))
-                    true
-                }
-                R.id.nav_users -> {
-                    startActivity(Intent(this, ManageUser::class.java))
-                    true
-                }
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, AdminSettings::class.java))
-                    true
-                }
-                else -> false
-            }
-        }
+//        bottomNav.setOnItemSelectedListener {
+//            when (it.itemId) {
+//                R.id.nav_home -> {
+//                    startActivity(Intent(this, AdminDashboardActivity::class.java))
+//                    true
+//                }
+//                R.id.nav_history -> {
+//                    startActivity(Intent(this, SubmissionHistory::class.java))
+//                    true
+//                }
+//                R.id.nav_users -> {
+//                    startActivity(Intent(this, ManageUser::class.java))
+//                    true
+//                }
+//                R.id.nav_settings -> {
+//                    startActivity(Intent(this, AdminSettings::class.java))
+//                    true
+//                }
+//                else -> false
+//            }
+//        }
 
         addUserButton.setOnClickListener {
             val name = nameInput.text.toString().trim()

@@ -12,7 +12,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.mindrot.jbcrypt.BCrypt
-import kotlinx.serialization.Serializable
 import android.util.Log
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
@@ -21,7 +20,6 @@ import com.mobdeve.s18.verify.model.User
 
 
 import kotlinx.serialization.json.Json
-import java.util.UUID
 
 class Login : AppCompatActivity() {
 
@@ -71,7 +69,7 @@ class Login : AppCompatActivity() {
                 if (company != null && BCrypt.checkpw(password, company.password)) {
                     val app = applicationContext as VerifiApp
                     app.companyID = company.id.toString()
-                    app.AuthotizedRole = "owner"
+                    app.authorizedRole = "owner"
 
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@Login, "Logged in as company owner", Toast.LENGTH_SHORT).show()
@@ -101,7 +99,7 @@ class Login : AppCompatActivity() {
 
                     when (user.role) {
                         "admin" -> {
-                            app.AuthotizedRole = "admin"
+                            app.authorizedRole = "admin"
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(this@Login, "Logged in as admin", Toast.LENGTH_SHORT).show()
                                 startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
@@ -110,7 +108,7 @@ class Login : AppCompatActivity() {
                         }
 
                         "reg_employee" -> {
-                            app.AuthotizedRole = "worker"
+                            app.authorizedRole = "worker"
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(this@Login, "Logged in as worker", Toast.LENGTH_SHORT).show()
                                 startActivity(Intent(this@Login, EmployeeDashboard::class.java))
