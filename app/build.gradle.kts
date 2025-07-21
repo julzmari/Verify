@@ -2,6 +2,7 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.23"
     id("kotlin-kapt")
 }
 
@@ -46,6 +47,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt:1.4.2")
     implementation("io.github.jan-tennert.supabase:storage-kt:1.4.2")
     implementation("io.ktor:ktor-client-okhttp:2.3.7")
+    implementation("org.mindrot:jbcrypt:0.4")
 
 
 
@@ -59,6 +61,7 @@ dependencies {
     implementation ("org.osmdroid:osmdroid-android:6.1.10")
     implementation(libs.material)
     testImplementation(libs.junit)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
 
