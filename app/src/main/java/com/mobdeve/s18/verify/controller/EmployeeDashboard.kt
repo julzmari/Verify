@@ -15,7 +15,7 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
-class EmployeeDashboard : AppCompatActivity() {
+class EmployeeDashboard : BaseActivity() {
 
     private lateinit var mapView: MapView
     private lateinit var welcomeText: TextView
@@ -62,23 +62,8 @@ class EmployeeDashboard : AppCompatActivity() {
 
         // Bottom Navigation setup
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
-        bottomNav.setOnItemSelectedListener { item ->
-            when (item.itemId) {
-                R.id.nav_home -> {
-                    // Already here
-                    true
-                }
-                R.id.nav_history -> {
-                    startActivity(Intent(this, SubmissionHistory::class.java))
-                    true
-                }
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, Settings::class.java))
-                    true
-                }
-                else -> false
-            }
-        }
+        setupBottomNavigation(bottomNav, R.id.nav_home)
+
     }
 
     override fun onResume() {

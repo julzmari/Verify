@@ -37,7 +37,7 @@ class AddUser : BaseActivity() {
         val addUserButton = findViewById<Button>(R.id.addUser)
         val returnButton = findViewById<TextView>(R.id.returnText)
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
-        setupBottomNavigation(bottomNav, R.id.nav_users)
+        setupBottomNavigation(bottomNav, 0)
 
         val roleAdapter = ArrayAdapter.createFromResource(
             this,
@@ -51,27 +51,6 @@ class AddUser : BaseActivity() {
             startActivity(Intent(this, ManageUser::class.java))
         }
 
-//        bottomNav.setOnItemSelectedListener {
-//            when (it.itemId) {
-//                R.id.nav_home -> {
-//                    startActivity(Intent(this, AdminDashboardActivity::class.java))
-//                    true
-//                }
-//                R.id.nav_history -> {
-//                    startActivity(Intent(this, SubmissionHistory::class.java))
-//                    true
-//                }
-//                R.id.nav_users -> {
-//                    startActivity(Intent(this, ManageUser::class.java))
-//                    true
-//                }
-//                R.id.nav_settings -> {
-//                    startActivity(Intent(this, AdminSettings::class.java))
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
 
         addUserButton.setOnClickListener {
             val name = nameInput.text.toString().trim()

@@ -24,7 +24,7 @@ import kotlinx.coroutines.*
 
 
 
-class ManageUser : AppCompatActivity() {
+class ManageUser : BaseActivity() {
 
     private lateinit var userAdapter: UserAdapter
     private lateinit var recyclerView: RecyclerView
@@ -85,27 +85,8 @@ class ManageUser : AppCompatActivity() {
         }
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
-        bottomNav.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.nav_home -> {
-                    startActivity(Intent(this, AdminDashboardActivity::class.java))
-                    true
-                }
-                R.id.nav_history -> {
-                    startActivity(Intent(this, SubmissionHistory::class.java))
-                    true
-                }
-                R.id.nav_users -> {
-                    startActivity(Intent(this, ManageUser::class.java))
-                    true
-                }
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, AdminSettings::class.java))
-                    true
-                }
-                else -> false
-            }
-        }
+        setupBottomNavigation(bottomNav, R.id.nav_users)
+
     }
 
     private fun fetchUsersFromSupabase() {

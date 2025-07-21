@@ -52,19 +52,6 @@ class SubmissionHistory :BaseActivity() {
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = UserEntryAdapter(userEntries) {  }
 
- //       val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
-//        bottomNav.setOnItemSelectedListener { item ->
-//            when (item.itemId) {
-//                R.id.nav_home -> {
-//                    startActivity(Intent(this, EmployeeDashboard::class.java))
-//                    true
-//                }
-//                R.id.nav_settings -> {
-//                    startActivity(Intent(this, Settings::class.java))
-//                    true
-//                }
-//                else -> false
-//            }
-//        }
+
     }
 }

@@ -15,7 +15,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.model.UserEntry
 
-class AdminDashboardActivity : AppCompatActivity() {
+class AdminDashboardActivity : BaseActivity() {
 
     private lateinit var mapView: MapView
     private lateinit var recyclerView: RecyclerView
@@ -67,28 +67,8 @@ class AdminDashboardActivity : AppCompatActivity() {
         }
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
+        setupBottomNavigation(bottomNav, R.id.nav_home)
 
-        bottomNav.setOnItemSelectedListener  { item ->
-           when (item.itemId) {
-           //     R.id.nav_home -> {
-           //         startActivity(Intent(this, HomeActivity::class.java))
-           //         true
-           //     }
-                R.id.nav_history -> {
-                    startActivity(Intent(this, SubmissionHistory::class.java))
-                    true
-                }
-                R.id.nav_users -> {
-                    startActivity(Intent(this, ManageUser::class.java))
-                    true
-                }
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, AdminSettings::class.java))
-                    true
-                }
-                else -> false
-            }
-        }
 
     }
 

@@ -20,7 +20,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
 
-class AdminSettings : AppCompatActivity() {
+class AdminSettings : BaseActivity() {
 
     private lateinit var profileImageView: ImageView
 
@@ -45,6 +45,7 @@ class AdminSettings : AppCompatActivity() {
         val changePass = findViewById<TextView>(R.id.changePassword)
         val logout = findViewById<TextView>(R.id.Logout)
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
+        setupBottomNavigation(bottomNav, R.id.nav_settings)
         profileImageView = findViewById(R.id.profilePic)
 
         changePic.setOnClickListener {
@@ -69,24 +70,7 @@ class AdminSettings : AppCompatActivity() {
             startActivity(intent)
         }
 
-        bottomNav.setOnItemSelectedListener {
-            when (it.itemId) {
-                R.id.nav_home -> {
-                    startActivity(Intent(this, AdminDashboardActivity::class.java))
-                    true
-                }
-                R.id.nav_history -> true
-                R.id.nav_users -> {
-                    startActivity(Intent(this, ManageUser::class.java))
-                    true
-                }
-                R.id.nav_settings -> {
-                    startActivity(Intent(this, AdminSettings::class.java))
-                    true
-                }
-                else -> false
-            }
-        }
+
     }
 
     private fun checkAndRequestPermission() {
