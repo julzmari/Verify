@@ -18,6 +18,7 @@ import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
+import com.mobdeve.s18.verify.app.VerifiApp
 
 class Settings : AppCompatActivity() {
 
@@ -59,7 +60,12 @@ class Settings : AppCompatActivity() {
         }
 
         logout.setOnClickListener {
+            val app = applicationContext as VerifiApp
+            app.companyID = null
+            app.employeeID = null
+
             val intent = Intent(this, Homepage::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
 

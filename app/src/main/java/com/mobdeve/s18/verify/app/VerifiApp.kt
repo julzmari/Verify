@@ -10,7 +10,8 @@ import io.github.jan.supabase.storage.Storage
 class VerifiApp : Application() {
     lateinit var supabase: SupabaseClient
     var companyID: String? = null
-    var AuthotizedRole: String? = null
+    var employeeID: String? = null
+    var AuthotizedRole: String? = null //owner, admin, worker
 
     override fun onCreate() {
         super.onCreate()

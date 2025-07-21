@@ -16,6 +16,9 @@ import kotlinx.serialization.Serializable
 import android.util.Log
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
+import com.mobdeve.s18.verify.model.Company
+import com.mobdeve.s18.verify.model.User
+
 
 import kotlinx.serialization.json.Json
 import java.util.UUID
@@ -48,61 +51,86 @@ class Login : AppCompatActivity() {
 
     private fun loginUser(email: String, password: String) {
         val supabase = (application as VerifiApp).supabase
+        val json = Json { ignoreUnknownKeys = true }
+
         Log.d("LOGIN_DEBUG", "Starting login query...")
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val results = supabase.postgrest
+                // Try logging in as company (owner)
+                val companyResult = supabase.postgrest
                     .from("companies")
                     .select {
                         eq("email", email)
                         limit(1)
                     }
-                val json = Json { ignoreUnknownKeys = true }
-                val companies = json.decodeFromString<List<Company>>(results.body.toString())
 
-
-
+                val companies = json.decodeFromString<List<Company>>(companyResult.body.toString())
                 val company = companies.firstOrNull()
 
-                if (company != null) {
-                    Log.d("LOGIN_DEBUG", "Company found: ${company.email}")
-                    Log.d("LOGIN_DEBUG", "Retrieved hash: ${company.password}")
-                    Log.d("LOGIN_DEBUG", "Hash length: ${company.password.length}")
+                if (company != null && BCrypt.checkpw(password, company.password)) {
+                    val app = applicationContext as VerifiApp
+                    app.companyID = company.id.toString()
+                    app.AuthotizedRole = "owner"
 
-                    try {
-                        val match = BCrypt.checkpw(password, company.password)
-                        Log.d("LOGIN_DEBUG", "Password match result: $match")
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@Login, "Logged in as company owner", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
+                        finish()
+                    }
+                    return@launch
+                }
 
-                        if (match) {
+                // Try logging in as user (admin or worker)
+                val userResult = supabase.postgrest
+                    .from("users")
+                    .select {
+                        eq("email", email)
+                        limit(1)
+                    }
 
-                            val app = applicationContext as VerifiApp
-                            app.companyID = company.id.toString()
+                val users = json.decodeFromString<List<User>>(userResult.body.toString())
+                val user = users.firstOrNull()
 
+                if (user != null && BCrypt.checkpw(password, user.password)) {
+                    val app = applicationContext as VerifiApp
+                    if (company != null) {
+                        app.companyID = company.id.toString()
+                    }
+                    app.employeeID = user.id.toString()
+
+                    when (user.role) {
+                        "admin" -> {
+                            app.AuthotizedRole = "admin"
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Login successful", Toast.LENGTH_SHORT).show()
-
-                                val intent = Intent(this@Login, AdminDashboardActivity::class.java)
-                                startActivity(intent)
+                                Toast.makeText(this@Login, "Logged in as admin", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
                                 finish()
                             }
-                        } else {
+                        }
+
+                        "reg_employee" -> {
+                            app.AuthotizedRole = "worker"
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Incorrect password", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@Login, "Logged in as worker", Toast.LENGTH_SHORT).show()
+                                startActivity(Intent(this@Login, EmployeeDashboard::class.java))
+                                finish()
                             }
                         }
-                    } catch (e: Exception) {
-                        Log.e("LOGIN_DEBUG", "BCrypt error: ${e.message}")
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(this@Login, "Invalid password hash format.", Toast.LENGTH_SHORT).show()
+
+                        else -> {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@Login, "Unauthorized role", Toast.LENGTH_SHORT).show()
+                            }
                         }
                     }
 
-                } else {
-                    Log.d("LOGIN_DEBUG", "No company found for email: $email")
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@Login, "No company found", Toast.LENGTH_SHORT).show()
-                    }
+                    return@launch
+                }
+
+                // If neither login was successful
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@Login, "Invalid email or password", Toast.LENGTH_SHORT).show()
                 }
 
             } catch (e: Exception) {
@@ -113,12 +141,4 @@ class Login : AppCompatActivity() {
             }
         }
     }
-
-    @Serializable
-    data class Company(
-        val id: String,
-        val name: String,
-        val email: String,
-        val password: String
-    )
 }

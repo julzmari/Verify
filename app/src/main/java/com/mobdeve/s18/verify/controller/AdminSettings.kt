@@ -62,6 +62,7 @@ class AdminSettings : AppCompatActivity() {
         logout.setOnClickListener {
             val app = applicationContext as VerifiApp
             app.companyID = null
+            app.employeeID = null
 
             val intent = Intent(this, Homepage::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
