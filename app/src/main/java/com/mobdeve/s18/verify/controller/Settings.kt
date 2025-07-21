@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.controller
 
 import android.Manifest
 import android.app.Activity
@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.mobdeve.s18.verify.R
 
 class Settings : AppCompatActivity() {
 

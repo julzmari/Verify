@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
 import android.os.Bundle
@@ -10,9 +10,10 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.views.overlay.Marker
-import android.graphics.drawable.Drawable
 import androidx.core.content.ContextCompat
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.mobdeve.s18.verify.R
+import com.mobdeve.s18.verify.model.UserEntry
 
 class AdminDashboardActivity : AppCompatActivity() {
 

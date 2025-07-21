@@ -1,9 +1,11 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
 import android.os.Bundle
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
+import com.mobdeve.s18.verify.R
+import com.mobdeve.s18.verify.app.VerifiApp
 import kotlinx.coroutines.*
 import org.mindrot.jbcrypt.BCrypt
 import io.github.jan.supabase.postgrest.postgrest

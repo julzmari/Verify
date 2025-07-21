@@ -30,7 +30,16 @@
             android:text="username_lastN@example.com"
             android:textColor="#DDDDDD"
             android:textSize="14sp"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="2dp" />
+
+        <TextView
+            android:id="@+id/tvCreatedAt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Joined: 2025-07-20"
+            android:textColor="#AAAAAA"
+            android:textSize="12sp"
+            android:layout_marginBottom="4dp" />
 
         <Button
             android:id="@+id/btnStatus"

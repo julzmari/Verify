@@ -99,11 +99,20 @@
                     android:id="@+id/confirmPass"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Confirm Password"
+                    android:layout_marginBottom="12dp"
                     android:background="#FFFFFF"
-                    android:padding="12dp"
+                    android:hint="Confirm Password"
+                    android:inputType="textPassword"
+                    android:padding="12dp" />
+
+                <Spinner
+                    android:id="@+id/userRoleSpinner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:layout_marginBottom="24dp"
-                    android:inputType="textPassword"/>
+                    android:background="#FFFFFF"
+                    android:padding="12dp" />
+
 
                 <Button
                     android:id="@+id/addUser"

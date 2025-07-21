@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.app
 
 import android.app.Application
 import io.github.jan.supabase.SupabaseClient
@@ -9,7 +9,8 @@ import io.github.jan.supabase.storage.Storage
 
 class VerifiApp : Application() {
     lateinit var supabase: SupabaseClient
-        private set
+    var companyID: String? = null
+    var AuthotizedRole: String? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -17,7 +18,10 @@ class VerifiApp : Application() {
             supabaseUrl = "https://lkjkgesqyrjodxzujkgg.supabase.co",
             supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxramtnZXNxeXJqb2R4enVqa2dnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0OTA4NzgsImV4cCI6MjA2ODA2Njg3OH0.adifn-tLWzDD8moDdjHaXHJGkMEpePgfeGVv9bFVcEI"
         ) {
-            install(GoTrue)
+            install(GoTrue){
+                alwaysAutoRefresh = true
+                autoLoadFromStorage = true
+            }
             install(Postgrest)
             install(Storage)
         }

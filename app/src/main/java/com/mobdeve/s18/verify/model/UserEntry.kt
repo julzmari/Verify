@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.model
 
 import java.io.Serializable
 

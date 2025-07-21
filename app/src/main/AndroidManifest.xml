@@ -16,7 +16,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
-        android:name=".VerifiApp"
+        android:name=".app.VerifiApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -28,7 +28,7 @@
         tools:targetApi="31">
 
         <activity
-            android:name=".Homepage"
+            android:name=".controller.Homepage"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -36,20 +36,20 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".Login" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".ForgotPassword" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".AdminDashboardActivity" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".Register" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".EmployeeDashboard" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".ManageUser" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".Settings" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".AdminSettings" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".AddUser" android:exported="false" android:windowSoftInputMode="adjustResize"/>
-        <activity android:name=".ChangePassword" />
-        <activity android:name=".AdminChangePassword" />
+        <activity android:name=".controller.Login" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.ForgotPassword" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.AdminDashboardActivity" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.Register" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.EmployeeDashboard" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.ManageUser" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.Settings" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.AdminSettings" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.AddUser" android:exported="false" android:windowSoftInputMode="adjustResize"/>
+        <activity android:name=".controller.ChangePassword" />
+        <activity android:name=".controller.AdminChangePassword" />
 
-        <activity android:name=".UserCamera" />
-        <activity android:name=".SubmissionHistory" />
+        <activity android:name=".controller.UserCamera" />
+        <activity android:name=".controller.SubmissionHistory" />
 
     </application>
 

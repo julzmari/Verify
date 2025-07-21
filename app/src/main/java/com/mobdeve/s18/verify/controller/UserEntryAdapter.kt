@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.controller
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,6 +7,8 @@ import android.widget.Button
 import android.widget.TextView
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
+import com.mobdeve.s18.verify.R
+import com.mobdeve.s18.verify.model.UserEntry
 
 class UserEntryAdapter(
     private val users: List<UserEntry>,

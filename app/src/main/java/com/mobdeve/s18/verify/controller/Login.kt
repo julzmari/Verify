@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
 import android.os.Bundle
@@ -14,10 +14,11 @@ import kotlinx.coroutines.withContext
 import org.mindrot.jbcrypt.BCrypt
 import kotlinx.serialization.Serializable
 import android.util.Log
-import kotlinx.coroutines.launch
+import com.mobdeve.s18.verify.R
+import com.mobdeve.s18.verify.app.VerifiApp
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import java.util.UUID
 
 class Login : AppCompatActivity() {
 
@@ -74,9 +75,15 @@ class Login : AppCompatActivity() {
                         Log.d("LOGIN_DEBUG", "Password match result: $match")
 
                         if (match) {
+
+                            val app = applicationContext as VerifiApp
+                            app.companyID = company.id.toString()
+
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(this@Login, "Login successful", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this@Login, EmployeeDashboard::class.java))
+
+                                val intent = Intent(this@Login, AdminDashboardActivity::class.java)
+                                startActivity(intent)
                                 finish()
                             }
                         } else {

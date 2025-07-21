@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.controller
 
 import android.app.Dialog
 import android.graphics.Bitmap
@@ -11,6 +11,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RadioGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.mobdeve.s18.verify.R
 
 class PhotoSubmissionSheet(
     private val photoBitmap: Bitmap,

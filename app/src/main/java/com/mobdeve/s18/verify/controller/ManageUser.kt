@@ -1,4 +1,4 @@
-package com.mobdeve.s18.verify
+package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
 import android.os.Bundle
@@ -9,27 +9,28 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.text.Editable
 import android.text.TextWatcher
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.mobdeve.s18.verify.R
+import com.mobdeve.s18.verify.model.User
+
+
+
+import com.mobdeve.s18.verify.app.VerifiApp
+import java.util.*
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.*
+
+
 
 class ManageUser : AppCompatActivity() {
 
     private lateinit var userAdapter: UserAdapter
     private lateinit var recyclerView: RecyclerView
     private lateinit var addUserLauncher: ActivityResultLauncher<Intent>
-    private val users = mutableListOf(
-        User("Alice", "alice@example.com", true),
-        User("Bob", "bob@example.com", false),
-        User("Charlie", "charlie@example.com", true),
-        User("David", "david@example.com", true),
-        User("Eva", "eva@example.com", false),
-        User("Frank", "frank@example.com", true),
-        User("Grace", "grace@example.com", false),
-        User("Hank", "hank@example.com", true),
-        User("Isla", "isla@example.com", false)
-    )
+    private val users = mutableListOf<User>()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +41,9 @@ class ManageUser : AppCompatActivity() {
         userAdapter = UserAdapter(users)
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = userAdapter
+
+        fetchUsersFromSupabase()
+
 
 
         val searchInput = findViewById<EditText>(R.id.searchInput)
@@ -75,19 +79,20 @@ class ManageUser : AppCompatActivity() {
         }
 
         addButton.setOnClickListener {
+
             val intent = Intent(this, AddUser::class.java)
-            addUserLauncher.launch(intent)
+            startActivity(intent)
         }
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         bottomNav.setOnItemSelectedListener {
             when (it.itemId) {
                 R.id.nav_home -> {
-                    //startActivity(Intent(this, AdminDashboard::class.java))
+                    startActivity(Intent(this, AdminDashboardActivity::class.java))
                     true
                 }
                 R.id.nav_history -> {
-                    //startActivity(Intent(this, History::class.java))
+                    startActivity(Intent(this, SubmissionHistory::class.java))
                     true
                 }
                 R.id.nav_users -> {
@@ -102,4 +107,26 @@ class ManageUser : AppCompatActivity() {
             }
         }
     }
+
+    private fun fetchUsersFromSupabase() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val supabase = (application as VerifiApp).supabase
+                val result = supabase.postgrest["users"]
+                    .select()
+                    .decodeList<User>()
+                    .filter { it.role == "reg_employee" }
+
+                withContext(Dispatchers.Main) {
+                    users.clear()
+                    users.addAll(result)
+                    userAdapter.notifyDataSetChanged()
+                }
+            } catch (e: Exception) {
+                e.printStackTrace() // Optional: show toast or log
+            }
+        }
+    }
+
+
 }
