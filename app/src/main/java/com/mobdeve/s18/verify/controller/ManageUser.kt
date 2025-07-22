@@ -9,15 +9,25 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
+import android.widget.ArrayAdapter
+import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.Spinner
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.model.User
+import com.mobdeve.s18.verify.model.UserParcelable
+
+
 
 
 
 import com.mobdeve.s18.verify.app.VerifiApp
+import com.mobdeve.s18.verify.model.toUser
 import java.util.*
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.*
@@ -32,24 +42,25 @@ class ManageUser : BaseActivity() {
     private val users = mutableListOf<User>()
 
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_manage_users)
 
         recyclerView = findViewById(R.id.rvUsers)
         recyclerView.isNestedScrollingEnabled = true
-        userAdapter = UserAdapter(users)
+        userAdapter = UserAdapter(users) { selectedUser ->
+            showUpdateUserDialog(selectedUser)
+        }
+
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = userAdapter
 
         fetchUsersFromSupabase()
 
-
-
         val searchInput = findViewById<EditText>(R.id.searchInput)
         val filterBtn = findViewById<ImageView>(R.id.ivFilter)
         val addButton = findViewById<ImageView>(R.id.ivAdd)
-
 
         searchInput.addTextChangedListener(object : TextWatcher {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
@@ -71,43 +82,92 @@ class ManageUser : BaseActivity() {
 
         addUserLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == RESULT_OK) {
-                val newUser = result.data?.getSerializableExtra("newUser") as? User
+                val newUser = result.data?.getParcelableExtra<UserParcelable>("newUser")
                 newUser?.let {
-                    userAdapter.addUser(it)
+                    userAdapter.addUser(it.toUser())
                 }
             }
         }
 
         addButton.setOnClickListener {
-
             val intent = Intent(this, AddUser::class.java)
-            startActivity(intent)
+            addUserLauncher.launch(intent)
         }
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, R.id.nav_users)
-
     }
+
+    private fun showUpdateUserDialog(user: User) {
+        val dialogView = layoutInflater.inflate(R.layout.popup_edit_user, null)
+
+        val dialog = AlertDialog.Builder(this)
+            .setView(dialogView)
+            .create()
+
+        val usernameField = dialogView.findViewById<EditText>(R.id.editUsername)
+        val emailField = dialogView.findViewById<EditText>(R.id.editEmail)
+        val roleSpinner = dialogView.findViewById<Spinner>(R.id.userRoleSpinner)
+        val cancelButton = dialogView.findViewById<Button>(R.id.cancelbtn)
+        val updateButton = dialogView.findViewById<Button>(R.id.updateUserbtn)
+
+        // Pre-fill fields
+        usernameField.setText(user.name)
+        emailField.setText(user.email)
+
+        // Populate and set spinner selection
+        val roles = listOf("admin", "reg_employee") // add "owner" if needed
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
+        roleSpinner.adapter = adapter
+        roleSpinner.setSelection(roles.indexOf(user.role))
+
+        cancelButton.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        updateButton.setOnClickListener {
+            val newUsername = usernameField.text.toString().trim()
+            val newEmail = emailField.text.toString().trim()
+            val newRole = roleSpinner.selectedItem.toString()
+
+            // TODO: Add validation & Supabase update logic here
+
+            Toast.makeText(this, "User updated: $newUsername", Toast.LENGTH_SHORT).show()
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
 
     private fun fetchUsersFromSupabase() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val supabase = (application as VerifiApp).supabase
-                val result = supabase.postgrest["users"]
+                val app = application as VerifiApp
+                val userRole = app.authorizedRole
+
+                val allUsers = supabase.postgrest["users"]
                     .select()
                     .decodeList<User>()
-                    .filter { it.role == "reg_employee" }
+                Log.d("ManageUser", "Fetched ${allUsers.size} users from Supabase")
+
+
+                val filteredUsers = when (userRole) {
+                    "owner" -> allUsers
+                    "admin" -> allUsers.filter { it.role == "reg_employee" }
+                    else -> emptyList()
+                }
+                Log.d("ManageUser", "Filtered users: ${filteredUsers.size}")
+
 
                 withContext(Dispatchers.Main) {
-                    users.clear()
-                    users.addAll(result)
-                    userAdapter.notifyDataSetChanged()
+                    userAdapter.setUsers(filteredUsers)
                 }
+
             } catch (e: Exception) {
-                e.printStackTrace() // Optional: show toast or log
+                e.printStackTrace()
             }
         }
     }
-
-
 }
