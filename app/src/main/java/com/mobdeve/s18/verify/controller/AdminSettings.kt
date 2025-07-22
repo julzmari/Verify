@@ -54,7 +54,7 @@ class AdminSettings : BaseActivity() {
 
         changePass.setOnClickListener {
             changePass.setOnClickListener {
-                val intent = Intent(this, AdminChangePassword::class.java)
+                val intent = Intent(this, ChangePassword::class.java)
                 startActivity(intent)
             }
 

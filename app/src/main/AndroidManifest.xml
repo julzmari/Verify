@@ -46,7 +46,6 @@
         <activity android:name=".controller.AdminSettings" android:exported="false" android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".controller.AddUser" android:exported="false" android:windowSoftInputMode="adjustResize"/>
         <activity android:name=".controller.ChangePassword" />
-        <activity android:name=".controller.AdminChangePassword" />
         <activity android:name=".controller.BaseActivity" android:exported="false" android:windowSoftInputMode="adjustResize"/>
 
 
