@@ -9,6 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.model.User
@@ -28,7 +29,9 @@ import kotlinx.coroutines.*
 
 class UserAdapter(
     private var users: MutableList<User>,
-    private val onUserClick: (User) -> Unit
+    private val onUserClick: (User) -> Unit,
+    private val currentUserRole: String
+
 ) : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
 
@@ -38,6 +41,7 @@ class UserAdapter(
         val toggleButton: Button = itemView.findViewById(R.id.btnStatus)
         val createdAt: TextView = itemView.findViewById(R.id.tvCreatedAt)
         val role: TextView = itemView.findViewById(R.id.tvRole)
+
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
@@ -70,7 +74,20 @@ class UserAdapter(
             )
         )
 
+
         holder.toggleButton.setOnClickListener {
+
+            val canToggle = when (currentUserRole) {
+                "owner" -> true
+                "admin" -> user.role == "reg_employee"
+                else -> false
+            }
+
+            if (!canToggle) {
+                Toast.makeText(holder.itemView.context, "You don't have permission to update this user", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val updatedUser = user.copy(isActive = !user.isActive)
             users[position] = updatedUser
             notifyItemChanged(position)
@@ -86,7 +103,7 @@ class UserAdapter(
             try {
                 val supabase = (context.applicationContext as VerifiApp).supabase
                 val response = supabase.postgrest["users?id=eq.${user.id}"]
-                    .update(mapOf("is_active" to user.isActive))
+                    .update(mapOf("isActive" to user.isActive))
                 Log.d("Supabase", "Update response: $response")
             } catch (e: Exception) {
                 Log.e("Supabase", "Exception during update: ${e.message}")

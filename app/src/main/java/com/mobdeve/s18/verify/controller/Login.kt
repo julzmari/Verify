@@ -90,41 +90,50 @@ class Login : AppCompatActivity() {
                 val users = json.decodeFromString<List<User>>(userResult.body.toString())
                 val user = users.firstOrNull()
 
-                if (user != null && BCrypt.checkpw(password, user.password)) {
-                    val app = applicationContext as VerifiApp
-                    if (company != null) {
-                        app.companyID = company.id.toString()
-                    }
-                    app.employeeID = user.id.toString()
-
-                    when (user.role) {
-                        "admin" -> {
-                            app.authorizedRole = "admin"
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Logged in as admin", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
-                                finish()
-                            }
+                if (user != null) {
+                    if (!user.isActive) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
                         }
-
-                        "reg_employee" -> {
-                            app.authorizedRole = "worker"
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Logged in as worker", Toast.LENGTH_SHORT).show()
-                                startActivity(Intent(this@Login, EmployeeDashboard::class.java))
-                                finish()
-                            }
-                        }
-
-                        else -> {
-                            withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Unauthorized role", Toast.LENGTH_SHORT).show()
-                            }
-                        }
+                        return@launch
                     }
 
-                    return@launch
+                    if (BCrypt.checkpw(password, user.password)) {
+                        val app = applicationContext as VerifiApp
+                        if (company != null) {
+                            app.companyID = company.id.toString()
+                        }
+                        app.employeeID = user.id.toString()
+
+                        when (user.role) {
+                            "admin" -> {
+                                app.authorizedRole = "admin"
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(this@Login, "Logged in as admin", Toast.LENGTH_SHORT).show()
+                                    startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
+                                    finish()
+                                }
+                            }
+
+                            "reg_employee" -> {
+                                app.authorizedRole = "worker"
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(this@Login, "Logged in as worker", Toast.LENGTH_SHORT).show()
+                                    startActivity(Intent(this@Login, EmployeeDashboard::class.java))
+                                    finish()
+                                }
+                            }
+
+                            else -> {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(this@Login, "Unauthorized role", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                        return@launch
+                    }
                 }
+
 
                 // If neither login was successful
                 withContext(Dispatchers.Main) {

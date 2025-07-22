@@ -49,9 +49,13 @@ class ManageUser : BaseActivity() {
 
         recyclerView = findViewById(R.id.rvUsers)
         recyclerView.isNestedScrollingEnabled = true
-        userAdapter = UserAdapter(users) { selectedUser ->
+
+        val app = application as VerifiApp
+        val currentUserRole = app.authorizedRole ?: ""
+
+        userAdapter = UserAdapter(users, { selectedUser ->
             showUpdateUserDialog(selectedUser)
-        }
+        }, currentUserRole)
 
         recyclerView.layoutManager = LinearLayoutManager(this)
         recyclerView.adapter = userAdapter
