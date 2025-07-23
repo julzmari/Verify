@@ -1,6 +1,5 @@
 package com.mobdeve.s18.verify.controller
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ArrayAdapter
@@ -9,7 +8,6 @@ import android.widget.EditText
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
@@ -37,11 +35,15 @@ class AddUser : BaseActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, 0)
 
-        val roleAdapter = ArrayAdapter.createFromResource(
-            this,
-            R.array.user_roles, // reference to the string-array
-            android.R.layout.simple_spinner_item
-        )
+        val currentRole = (application as VerifiApp).authorizedRole
+        val availableRoles = if (currentRole == "admin") {
+            listOf("Regular Worker") // Only allow creating reg_employee
+        } else {
+            listOf("Admin", "Regular Worker")
+        }
+
+        val roleAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, availableRoles)
+
         roleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         roleInput.adapter = roleAdapter
 
@@ -58,7 +60,7 @@ class AddUser : BaseActivity() {
             val selectedRole = roleInput.selectedItem.toString()
             val role = when (selectedRole) {
                 "Admin" -> "admin"
-                "Worker" -> "reg_employee"
+                "Regular Worker" -> "reg_employee"
                 else -> {
                     Toast.makeText(this, "Invalid role selected", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener

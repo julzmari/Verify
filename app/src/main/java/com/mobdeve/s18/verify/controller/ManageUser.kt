@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import android.text.Editable
@@ -25,10 +24,8 @@ import com.mobdeve.s18.verify.model.UserParcelable
 
 
 
-import io.github.jan.supabase.postgrest.query.FilterOperation
 import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.toUser
-import java.util.*
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.JsonObject
@@ -122,11 +119,25 @@ class ManageUser : BaseActivity() {
         usernameField.setText(user.name)
         emailField.setText(user.email)
 
-        // Populate and set spinner selection
-        val roles = listOf("admin", "reg_employee")
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
+        // Display labels shown in the spinner
+        val roleDisplayNames = listOf("Admin", "Regular Worker")
+
+        // Map from display name to actual role value
+        val roleMap = mapOf(
+            "Admin" to "admin",
+            "Regular Worker" to "reg_employee"
+        )
+
+        // Reverse map to set the correct spinner position from user's current role
+        val reverseRoleMap = roleMap.entries.associate { (k, v) -> v to k }
+
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roleDisplayNames)
         roleSpinner.adapter = adapter
-        roleSpinner.setSelection(roles.indexOf(user.role))
+
+// Set spinner to current user role
+        val currentDisplayRole = reverseRoleMap[user.role] ?: "Worker"
+        roleSpinner.setSelection(roleDisplayNames.indexOf(currentDisplayRole))
+
 
         cancelButton.setOnClickListener {
             dialog.dismiss()
@@ -137,7 +148,15 @@ class ManageUser : BaseActivity() {
         updateButton.setOnClickListener {
             val newUsername = usernameField.text.toString().trim()
             val newEmail = emailField.text.toString().trim().lowercase()
-            val newRole = roleSpinner.selectedItem.toString()
+            val selectedRole = roleSpinner.selectedItem.toString()
+            val newRole = when (selectedRole) {
+                "Admin" -> "admin"
+                "Regular Worker" -> "reg_employee"
+                else -> {
+                    Toast.makeText(this, "Invalid role selected", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+            }
 
 
 
@@ -184,6 +203,7 @@ class ManageUser : BaseActivity() {
                     val userEmailCheck = supabase.postgrest["users"]
                         .select {
                             eq("email", newEmail)
+                            neq("id", user.id) // exclude the current user
                         }
                         .decodeList<JsonObject>()
 

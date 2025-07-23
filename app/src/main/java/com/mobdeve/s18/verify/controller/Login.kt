@@ -29,7 +29,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class RememberedAccount(val email: String, val password: String)
 
-import kotlinx.serialization.json.Json
 
 class Login : AppCompatActivity() {
 
@@ -101,7 +100,7 @@ class Login : AppCompatActivity() {
 
                 if (company != null && BCrypt.checkpw(password, company.password)) {
                     val app = applicationContext as VerifiApp
-                    app.companyID = company.id.toString()
+                    app.companyID = company.id
                     app.authorizedRole = "owner"
 
                     withContext(Dispatchers.Main) {
@@ -134,8 +133,8 @@ class Login : AppCompatActivity() {
                     if (BCrypt.checkpw(password, user.password)) {
                         val app = applicationContext as VerifiApp
 
-                        app.companyID = user.companyID.toString()
-                        app.employeeID = user.id.toString()
+                        app.companyID = user.companyID
+                        app.employeeID = user.id
 
                         when (user.role) {
                             "admin" -> {
