@@ -94,10 +94,15 @@ class UserAdapter(
             updateUserStatusInSupabase(updatedUser, holder.itemView.context)
         }
 
-        holder.itemView.setOnClickListener {
-            onUserClick(user)
+        if (currentUserRole == "owner") {
+            holder.itemView.setOnClickListener {
+                onUserClick(user)
+            }
+        } else {
+            holder.itemView.setOnClickListener(null) // no-op
         }
     }
+
     private fun updateUserStatusInSupabase(user: User, context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
