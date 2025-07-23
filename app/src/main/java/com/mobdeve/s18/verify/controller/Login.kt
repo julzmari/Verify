@@ -22,6 +22,7 @@ import android.widget.CheckBox
 import kotlinx.serialization.json.Json
 import android.widget.AutoCompleteTextView
 import android.widget.ArrayAdapter
+import android.widget.TextView
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.Serializable
@@ -64,6 +65,11 @@ class Login : AppCompatActivity() {
             val selectedEmail = adapter.getItem(position)
             val matched = rememberedAccounts.find { it.email == selectedEmail }
             passwordEditText.setText(matched?.password ?: "")
+        }
+
+        val loginText = findViewById<TextView>(R.id.login_txt_loginQuestion)
+        loginText.setOnClickListener {
+            startActivity(Intent(this, Register::class.java))
         }
         
         loginButton.setOnClickListener {
