@@ -40,7 +40,7 @@ class Register : AppCompatActivity() {
 
     private fun registerCompany() {
         val name = nameInput.text.toString().trim()
-        val email = emailInput.text.toString().trim()
+        val email = emailInput.text.toString().trim().lowercase()
         val password = pwInput.text.toString()
         val confirmPassword = pw2Input.text.toString()
 

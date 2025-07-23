@@ -36,7 +36,7 @@ class Login : AppCompatActivity() {
         loginButton = findViewById(R.id.btn_login)
 
         loginButton.setOnClickListener {
-            val email = emailEditText.text.toString()
+            val email = emailEditText.text.toString().trim().lowercase()
             val password = passwordEditText.text.toString()
 
             if (email.isBlank() || password.isBlank()) {
@@ -100,9 +100,8 @@ class Login : AppCompatActivity() {
 
                     if (BCrypt.checkpw(password, user.password)) {
                         val app = applicationContext as VerifiApp
-                        if (company != null) {
-                            app.companyID = company.id.toString()
-                        }
+
+                        app.companyID = user.companyID.toString()
                         app.employeeID = user.id.toString()
 
                         when (user.role) {

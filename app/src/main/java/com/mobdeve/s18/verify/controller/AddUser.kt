@@ -54,7 +54,7 @@ class AddUser : BaseActivity() {
 
         addUserButton.setOnClickListener {
             val name = nameInput.text.toString().trim()
-            val email = emailInput.text.toString().trim()
+            val email = emailInput.text.toString().trim().lowercase()
             val password = passwordInput.text.toString()
             val confirmPassword = confirmPasswordInput.text.toString()
             val selectedRole = roleInput.selectedItem.toString()
