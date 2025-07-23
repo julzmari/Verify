@@ -31,7 +31,7 @@ import com.mobdeve.s18.verify.model.toUser
 import java.util.*
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.*
-
+import kotlinx.serialization.json.JsonObject
 
 
 class ManageUser : BaseActivity() {
@@ -136,7 +136,7 @@ class ManageUser : BaseActivity() {
 
         updateButton.setOnClickListener {
             val newUsername = usernameField.text.toString().trim()
-            val newEmail = emailField.text.toString().trim()
+            val newEmail = emailField.text.toString().trim().lowercase()
             val newRole = roleSpinner.selectedItem.toString()
 
 
@@ -156,6 +156,8 @@ class ManageUser : BaseActivity() {
                 return@setOnClickListener
             }
 
+
+
             // Update the user locally
             val updatedUser = user.copy(
                 name = newUsername,
@@ -169,6 +171,29 @@ class ManageUser : BaseActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val supabase = (application as VerifiApp).supabase
+
+                    // 1. Check if email exists in companies
+                    val companyEmailCheck = supabase.postgrest["companies"]
+                        .select {
+                            eq("email", newEmail)
+                        }
+                        .decodeList<JsonObject>()
+
+
+                    // 2. Check if email exists in users
+                    val userEmailCheck = supabase.postgrest["users"]
+                        .select {
+                            eq("email", newEmail)
+                        }
+                        .decodeList<JsonObject>()
+
+
+                    if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@ManageUser, "Email is already registered.", Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
+                    }
 
                     val updatedUsers = supabase.postgrest["users"]
                         .update(

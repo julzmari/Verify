@@ -9,6 +9,8 @@ import com.mobdeve.s18.verify.app.VerifiApp
 import kotlinx.coroutines.*
 import org.mindrot.jbcrypt.BCrypt
 import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.serialization.json.JsonObject
+
 
 class Register : AppCompatActivity() {
 
@@ -59,6 +61,29 @@ class Register : AppCompatActivity() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val supabase = (application as VerifiApp).supabase
+
+                // 1. Check if email exists in companies
+                val companyEmailCheck = supabase.postgrest["companies"]
+                    .select {
+                        eq("email", email)
+                    }
+                    .decodeList<JsonObject>()
+
+
+                // 2. Check if email exists in users
+                val userEmailCheck = supabase.postgrest["users"]
+                    .select {
+                        eq("email", email)
+                    }
+                    .decodeList<JsonObject>()
+
+
+                if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@Register, "Email is already registered.", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
 
                 supabase.postgrest["companies"].insert(
                     mapOf(

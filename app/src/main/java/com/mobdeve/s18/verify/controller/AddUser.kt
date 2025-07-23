@@ -19,9 +19,7 @@ import org.mindrot.jbcrypt.BCrypt
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.*
 import kotlinx.datetime.Clock
-
-
-
+import kotlinx.serialization.json.JsonObject
 
 
 class AddUser : BaseActivity() {
@@ -89,6 +87,29 @@ class AddUser : BaseActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val supabase = (application as VerifiApp).supabase
+
+                    // 1. Check if email exists in companies
+                    val companyEmailCheck = supabase.postgrest["companies"]
+                        .select {
+                            eq("email", email)
+                        }
+                        .decodeList<JsonObject>()
+
+
+                    // 2. Check if email exists in users
+                    val userEmailCheck = supabase.postgrest["users"]
+                        .select {
+                            eq("email", email)
+                        }
+                        .decodeList<JsonObject>()
+
+
+                    if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@AddUser, "Email is already registered.", Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
+                    }
 
                     val newUser = User(
                         id = UUID.randomUUID().toString(),
