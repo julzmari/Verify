@@ -25,7 +25,7 @@ import com.mobdeve.s18.verify.model.UserParcelable
 
 
 
-
+import io.github.jan.supabase.postgrest.query.FilterOperation
 import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.toUser
 import java.util.*
@@ -102,12 +102,15 @@ class ManageUser : BaseActivity() {
         setupBottomNavigation(bottomNav, R.id.nav_users)
     }
 
+
+
     private fun showUpdateUserDialog(user: User) {
         val dialogView = layoutInflater.inflate(R.layout.popup_edit_user, null)
 
         val dialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .create()
+        dialog.show()
 
         val usernameField = dialogView.findViewById<EditText>(R.id.editUsername)
         val emailField = dialogView.findViewById<EditText>(R.id.editEmail)
@@ -120,7 +123,7 @@ class ManageUser : BaseActivity() {
         emailField.setText(user.email)
 
         // Populate and set spinner selection
-        val roles = listOf("admin", "reg_employee") // add "owner" if needed
+        val roles = listOf("admin", "reg_employee")
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roles)
         roleSpinner.adapter = adapter
         roleSpinner.setSelection(roles.indexOf(user.role))
@@ -129,19 +132,82 @@ class ManageUser : BaseActivity() {
             dialog.dismiss()
         }
 
+
+
         updateButton.setOnClickListener {
             val newUsername = usernameField.text.toString().trim()
             val newEmail = emailField.text.toString().trim()
             val newRole = roleSpinner.selectedItem.toString()
 
-            // TODO: Add validation & Supabase update logic here
 
-            Toast.makeText(this, "User updated: $newUsername", Toast.LENGTH_SHORT).show()
-            dialog.dismiss()
+
+            if (newUsername.isEmpty() || newEmail.isEmpty()) {
+                Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Check if any changes were made
+            val isChanged = newUsername != user.name ||
+                    newEmail != user.email ||
+                    newRole != user.role
+
+            if (!isChanged) {
+                Toast.makeText(this, "No changes detected", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Update the user locally
+            val updatedUser = user.copy(
+                name = newUsername,
+                email = newEmail,
+                role = newRole
+            )
+
+            userAdapter.updateUser(updatedUser)
+
+            // Perform the update
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val supabase = (application as VerifiApp).supabase
+
+                    val updatedUsers = supabase.postgrest["users"]
+                        .update(
+                            mapOf(
+                                "name" to newUsername,
+                                "email" to newEmail,
+                                "role" to newRole
+                            )
+                        )
+                        {eq("id", user.id) }// Ensure this is imported
+                        .decodeList<User>()
+
+                    if (updatedUsers.isNotEmpty()) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@ManageUser, "User updated", Toast.LENGTH_SHORT).show()
+                            dialog.dismiss()
+                        }
+                    } else {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@ManageUser,
+                                "Update failed: No rows returned",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("UpdateUser", "Exception: ${e.message}", e)
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@ManageUser, "Something went wrong", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+
         }
-
-        dialog.show()
     }
+
+
+
 
 
     private fun fetchUsersFromSupabase() {

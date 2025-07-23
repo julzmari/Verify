@@ -1,78 +1,91 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:card_view="http://schemas.android.com/apk/res-auto"
     android:id="@+id/addUserContainer"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="20dp"
-    android:background="@drawable/round_greenbg"
-    android:fadingEdge="horizontal|vertical"
-    android:gravity="center"
-    android:orientation="vertical"
-    android:padding="24dp">
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:text="Update User"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <EditText
-        android:id="@+id/editUsername"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:background="#FFFFFF"
-        android:hint="Username"
-        android:inputType="textPersonName"
-        android:padding="12dp" />
-
-    <EditText
-        android:id="@+id/editEmail"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:background="#FFFFFF"
-        android:hint="Email"
-        android:inputType="textEmailAddress"
-        android:padding="12dp" />
-
-    <Spinner
-        android:id="@+id/userRoleSpinner"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="24dp"
-        android:background="#FFFFFF"
-        android:padding="12dp" />
-
+    android:elevation="8dp"
+    card_view:cardBackgroundColor="@color/green_primary"
+    card_view:cardCornerRadius="5dp"
+    card_view:cardPreventCornerOverlap="true"
+    card_view:cardUseCompatPadding="false">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal">
+        android:background="#00FFFFFF"
+        android:backgroundTint="#00FFFFFF"
+        android:orientation="vertical"
+        android:padding="24dp">
 
-        <Button
-            android:id="@+id/cancelbtn"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginRight="20dp"
-            android:backgroundTint="#4CAF50"
-            android:text="Cancel" />
-
-        <Button
-            android:id="@+id/updateUserbtn"
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
-            android:backgroundTint="#4CAF50"
-            android:paddingLeft="24dp"
-            android:paddingRight="24dp"
-            android:text="Update"
-            android:textColor="#FFFFFF" />
+            android:layout_marginBottom="24dp"
+            android:text="Update User"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/editUsername"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="#FFFFFF"
+            android:hint="Username"
+            android:inputType="textPersonName"
+            android:padding="12dp" />
+
+        <EditText
+            android:id="@+id/editEmail"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="12dp"
+            android:background="#FFFFFF"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:padding="12dp" />
+
+        <Spinner
+            android:id="@+id/userRoleSpinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:background="#FFFFFF"
+            android:spinnerMode="dropdown" />
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:weightSum="2">
+
+            <Button
+                android:id="@+id/cancelbtn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="#4CAF50"
+                android:text="Cancel"
+                android:textColor="#FFFFFF" />
+
+            <Button
+                android:id="@+id/updateUserbtn"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:backgroundTint="#4CAF50"
+                android:text="Update"
+                android:textColor="#FFFFFF" />
+        </LinearLayout>
+
     </LinearLayout>
 
-</LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -111,7 +111,7 @@ class UserAdapter(
         }
     }
 
-    // 🔄 Use this from ManageUser to update the list
+    // Use this from ManageUser to update the list
     fun setUsers(newUsers: List<User>) {
         this.users = newUsers.toMutableList()
         notifyDataSetChanged()
@@ -137,4 +137,13 @@ class UserAdapter(
         }
         notifyDataSetChanged()
     }
+
+    fun updateUser(updatedUser: User) {
+        val index = users.indexOfFirst { it.id == updatedUser.id }
+        if (index != -1) {
+            users[index] = updatedUser
+            notifyItemChanged(index)
+        }
+    }
+
 }
