@@ -216,10 +216,14 @@ class ManageUser : BaseActivity() {
                 val supabase = (application as VerifiApp).supabase
                 val app = application as VerifiApp
                 val userRole = app.authorizedRole
+                val companyId = app.companyID.toString()
 
                 val allUsers = supabase.postgrest["users"]
-                    .select()
-                    .decodeList<User>()
+                    .select(){
+                        eq("companyID", companyId) } // ← This is the working filter
+                .decodeList<User>()
+
+
                 Log.d("ManageUser", "Fetched ${allUsers.size} users from Supabase")
 
 
