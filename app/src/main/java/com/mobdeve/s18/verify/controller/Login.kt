@@ -18,14 +18,25 @@ import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.Company
 import com.mobdeve.s18.verify.model.User
 
+import android.widget.CheckBox 
+import kotlinx.serialization.json.Json
+import android.widget.AutoCompleteTextView
+import android.widget.ArrayAdapter
+import com.google.android.material.textfield.MaterialAutoCompleteTextView
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RememberedAccount(val email: String, val password: String)
 
 import kotlinx.serialization.json.Json
 
 class Login : AppCompatActivity() {
 
-    private lateinit var emailEditText: EditText
+    private lateinit var emailEditText: MaterialAutoCompleteTextView 
     private lateinit var passwordEditText: EditText
     private lateinit var loginButton: Button
+    private lateinit var rememberMeCheckBox: CheckBox
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +46,27 @@ class Login : AppCompatActivity() {
         passwordEditText = findViewById(R.id.login_txt_pw_input)
         loginButton = findViewById(R.id.btn_login)
 
+        rememberMeCheckBox = findViewById(R.id.login_checkBox)
+        rememberMeCheckBox.isChecked = false // Always reset
+
+        // Load saved accounts
+        val sharedPrefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val savedJson = sharedPrefs.getString("rememberedAccounts", "[]")
+        val rememberedAccounts = Json.decodeFromString<List<RememberedAccount>>(savedJson ?: "[]")
+
+        val savedEmails = rememberedAccounts.map { it.email }
+
+        // Set dropdown suggestions
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, savedEmails)
+        (emailEditText as AutoCompleteTextView).setAdapter(adapter)
+
+        // Autofill password on email selection
+        (emailEditText as AutoCompleteTextView).setOnItemClickListener { _, _, position, _ ->
+            val selectedEmail = adapter.getItem(position)
+            val matched = rememberedAccounts.find { it.email == selectedEmail }
+            passwordEditText.setText(matched?.password ?: "")
+        }
+        
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim().lowercase()
             val password = passwordEditText.text.toString()
@@ -45,6 +77,7 @@ class Login : AppCompatActivity() {
                 loginUser(email, password)
             }
         }
+
     }
 
     private fun loginUser(email: String, password: String) {
@@ -144,6 +177,20 @@ class Login : AppCompatActivity() {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Login, "Login error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
+            }
+        }
+
+        val sharedPreferences = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+
+        if (rememberMeCheckBox.isChecked) {
+            val sharedPrefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+            val savedJson = sharedPrefs.getString("rememberedAccounts", "[]")
+            val accounts = Json.decodeFromString<MutableList<RememberedAccount>>(savedJson ?: "[]")
+
+            if (accounts.none { it.email == email }) {
+                accounts.add(RememberedAccount(email, password))
+                sharedPrefs.edit().putString("rememberedAccounts", Json.encodeToString(accounts)).apply()
             }
         }
     }
