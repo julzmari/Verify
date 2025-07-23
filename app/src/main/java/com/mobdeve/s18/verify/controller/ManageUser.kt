@@ -135,7 +135,7 @@ class ManageUser : BaseActivity() {
         roleSpinner.adapter = adapter
 
 // Set spinner to current user role
-        val currentDisplayRole = reverseRoleMap[user.role] ?: "Worker"
+        val currentDisplayRole = reverseRoleMap[user.role] ?: "Regular Worker"
         roleSpinner.setSelection(roleDisplayNames.indexOf(currentDisplayRole))
 
 

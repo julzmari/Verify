@@ -60,7 +60,14 @@ class UserAdapter(
 
         holder.username.text = user.name
         holder.email.text = user.email
-        holder.role.text = "Role: ${user.role}"
+
+
+        val displayRole = when (user.role) {
+            "admin" -> "Admin"
+            "reg_employee" -> "Regular Worker"
+            else -> user.role // fallback to raw value if unknown
+        }
+        holder.role.text = "Role: $displayRole"
 
         val millis = user.createdAt.epochSeconds * 1000 + user.createdAt.nanosecondsOfSecond / 1_000_000
         val date = Date(millis)
