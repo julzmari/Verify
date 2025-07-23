@@ -188,6 +188,7 @@ class ManageUser : BaseActivity() {
                         .decodeList<JsonObject>()
 
 
+
                     if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@ManageUser, "Email is already registered.", Toast.LENGTH_SHORT).show()
