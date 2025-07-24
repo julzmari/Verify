@@ -6,23 +6,15 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
-import kotlinx.serialization.json.Json
-import io.github.jan.supabase.postgrest.postgrest
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.mindrot.jbcrypt.BCrypt
-import androidx.lifecycle.lifecycleScope
 import com.mobdeve.s18.verify.model.Company
 import com.mobdeve.s18.verify.model.User
+import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.*
-
-
-
-
-
+import kotlinx.serialization.json.Json
+import org.mindrot.jbcrypt.BCrypt
 
 class ChangePassword : AppCompatActivity() {
 
@@ -38,10 +30,19 @@ class ChangePassword : AppCompatActivity() {
         val confirmPassword = findViewById<EditText>(R.id.confirmPassword)
         val submitButton = findViewById<Button>(R.id.submitPassword)
         val discardButton = findViewById<Button>(R.id.discardPassword)
+
         val json = Json { ignoreUnknownKeys = true }
 
-
-
+        fun getPasswordStrengthError(password: String): String? {
+            return when {
+                password.length < 8 -> "Password must be at least 8 characters long."
+                !Regex("[A-Z]").containsMatchIn(password) -> "Password must contain at least one uppercase letter."
+                !Regex("[a-z]").containsMatchIn(password) -> "Password must contain at least one lowercase letter."
+                !Regex("[0-9]").containsMatchIn(password) -> "Password must contain at least one number."
+                !Regex("[^A-Za-z0-9]").containsMatchIn(password) -> "Password must contain at least one special character."
+                else -> null
+            }
+        }
 
         submitButton.setOnClickListener {
             val current = currentPassword.text.toString()
@@ -58,13 +59,18 @@ class ChangePassword : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            val error = getPasswordStrengthError(new)
+            if (error != null) {
+                Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
 
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     app = applicationContext as VerifiApp
                     role = app.authorizedRole
 
-                    val supabase = (application as VerifiApp).supabase
+                    val supabase = app.supabase
                     val idToCheck: String
 
                     if (role == "owner") {
@@ -81,7 +87,6 @@ class ChangePassword : AppCompatActivity() {
                         val company = companies.firstOrNull() ?: return@launch
                         val currentHashedPassword = company.password
 
-                        // Check if current password does NOT match
                         if (!BCrypt.checkpw(current, currentHashedPassword)) {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(
@@ -93,7 +98,6 @@ class ChangePassword : AppCompatActivity() {
                             return@launch
                         }
 
-                        // Check if new password is same as current
                         if (BCrypt.checkpw(new, currentHashedPassword)) {
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(
@@ -105,7 +109,6 @@ class ChangePassword : AppCompatActivity() {
                             return@launch
                         }
 
-                        // Hash and update password
                         val hashedNewPassword = BCrypt.hashpw(new, BCrypt.gensalt())
                         supabase.postgrest["companies"]
                             .update(mapOf("password" to hashedNewPassword)) {
@@ -118,7 +121,6 @@ class ChangePassword : AppCompatActivity() {
                                 "Password updated successfully.",
                                 Toast.LENGTH_SHORT
                             ).show()
-
                             finish()
                         }
 
@@ -170,10 +172,10 @@ class ChangePassword : AppCompatActivity() {
                                 "Password updated successfully.",
                                 Toast.LENGTH_SHORT
                             ).show()
-
                             finish()
                         }
                     }
+
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
@@ -184,18 +186,17 @@ class ChangePassword : AppCompatActivity() {
                     }
                 }
             }
+        }
 
-            discardButton.setOnClickListener {
-                if(role == "worker"){
-                    startActivity(Intent(this, Settings::class.java))
-                }
-                else{
-                    startActivity(Intent(this, AdminSettings::class.java))
-                }
-
-                finish()
+        discardButton.setOnClickListener {
+            if (role == "worker") {
+                startActivity(Intent(this, Settings::class.java))
+            } else {
+                startActivity(Intent(this, AdminSettings::class.java))
             }
+            finish()
         }
     }
 }
+
 
