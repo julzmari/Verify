@@ -71,7 +71,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
                     android:textColor="@android:color/white"
-                    android:textSize="30sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     android:layout_marginLeft="50dp"
                     />
@@ -82,7 +82,7 @@
                     android:layout_height="wrap_content"
                     android:layout_gravity="end"
                     android:textColor="@android:color/white"
-                    android:textSize="22sp"
+                    android:textSize="20sp"
                     android:layout_marginLeft="10dp"
                     />
             </LinearLayout>
