@@ -121,7 +121,8 @@ class AddUser : BaseActivity() {
                         email = email,
                         password = hashedPassword,
                         isActive = true,
-                        createdAt = Clock.System.now()
+                        createdAt = Clock.System.now(),
+                        profileURL = ""
                     )
 
                     val result = supabase.postgrest["users"].insert(newUser)
