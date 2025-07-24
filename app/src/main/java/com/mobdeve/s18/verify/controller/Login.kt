@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.*
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
@@ -31,6 +32,8 @@ class Login : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var rememberMeCheckBox: CheckBox
 
+    private lateinit var rememberedAccounts: MutableList<RememberedAccount>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -56,6 +59,25 @@ class Login : AppCompatActivity() {
             passwordEditText.setText(matched?.password ?: "")
         }
 
+        // type or select the account
+        // after selecting, long press the email field
+        emailEditText.setOnLongClickListener {
+            val selectedEmail = emailEditText.text.toString().trim()
+            if (selectedEmail.isNotEmpty() && rememberedAccounts.any { it.email == selectedEmail }) {
+                AlertDialog.Builder(this)
+                    .setTitle("Forget Account?")
+                    .setMessage("Do you want to remove remembered account: $selectedEmail?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        removeRememberedAccount(selectedEmail)
+                        emailEditText.text.clear()
+                        passwordEditText.text.clear()
+                    }
+                    .setNegativeButton("No", null)
+                    .show()
+            }
+            true
+        }
+
         findViewById<TextView>(R.id.login_txt_loginQuestion).setOnClickListener {
             startActivity(Intent(this, Register::class.java))
         }
@@ -67,9 +89,16 @@ class Login : AppCompatActivity() {
             if (email.isBlank() || password.isBlank()) {
                 Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
             } else {
-                loginUser(email, password)
+                if (rememberMeCheckBox.isChecked) {
+                    maybeUpdateRememberedAccount(email, password) {
+                        loginUser(email, password)
+                    }
+                } else {
+                    loginUser(email, password)
+                }
             }
         }
+
     }
 
     private fun loginUser(email: String, password: String) {
@@ -121,13 +150,11 @@ class Login : AppCompatActivity() {
                         return@launch
                     }
 
-                    // Track attempts locally using SharedPreferences
                     val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
                     val attemptKey = "attempts_${user.email}"
                     val currentAttempts = prefs.getInt(attemptKey, 0)
 
                     if (BCrypt.checkpw(password, user.password)) {
-                        // Reset attempts on success
                         prefs.edit().remove(attemptKey).apply()
 
                         val app = applicationContext as VerifiApp
@@ -158,13 +185,10 @@ class Login : AppCompatActivity() {
                             }
                         }
                         return@launch
-
                     } else {
-                        // Incorrect password, increment attempt
                         val newAttempts = currentAttempts + 1
 
                         if (newAttempts >= 5) {
-                            // Deactivate user in DB
                             supabase.postgrest.from("users").update(
                                 mapOf("isActive" to false)
                             ) {
@@ -177,7 +201,6 @@ class Login : AppCompatActivity() {
                             }
                         } else {
                             prefs.edit().putInt(attemptKey, newAttempts).apply()
-
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(
                                     this@Login,
@@ -190,7 +213,6 @@ class Login : AppCompatActivity() {
                     }
                 }
 
-                // No match found
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Login, "Invalid email or password", Toast.LENGTH_SHORT).show()
                 }
@@ -202,17 +224,59 @@ class Login : AppCompatActivity() {
                 }
             }
         }
+    }
 
-        // Remember me
-        val sharedPreferences = getSharedPreferences("loginPrefs", MODE_PRIVATE)
-        if (rememberMeCheckBox.isChecked) {
-            val savedJson = sharedPreferences.getString("rememberedAccounts", "[]")
-            val accounts = Json.decodeFromString<MutableList<RememberedAccount>>(savedJson ?: "[]")
+    private fun maybeUpdateRememberedAccount(email: String, password: String, onContinue: () -> Unit) {
+        val sharedPrefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val savedJson = sharedPrefs.getString("rememberedAccounts", "[]")
+        val accounts = Json.decodeFromString<MutableList<RememberedAccount>>(savedJson ?: "[]")
 
-            if (accounts.none { it.email == email }) {
-                accounts.add(RememberedAccount(email, password))
-                sharedPreferences.edit().putString("rememberedAccounts", Json.encodeToString(accounts)).apply()
+        val existingIndex = accounts.indexOfFirst { it.email == email }
+
+        if (existingIndex != -1) {
+            val existingPassword = accounts[existingIndex].password
+            if (existingPassword != password) {
+                AlertDialog.Builder(this)
+                    .setTitle("Update Saved Account")
+                    .setMessage("Do you want to update the saved password?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        accounts[existingIndex] = RememberedAccount(email, password)
+                        sharedPrefs.edit().putString("rememberedAccounts", Json.encodeToString(accounts)).apply()
+                        Toast.makeText(this, "Saved password updated.", Toast.LENGTH_SHORT).show()
+                        onContinue()
+                    }
+                    .setNegativeButton("No") { _, _ ->
+                        onContinue()
+                    }
+                    .show()
+            } else {
+                onContinue()
             }
+        } else {
+            accounts.add(RememberedAccount(email, password))
+            sharedPrefs.edit().putString("rememberedAccounts", Json.encodeToString(accounts)).apply()
+            onContinue()
         }
     }
+    
+
+    private fun removeRememberedAccount(email: String) {
+        val sharedPrefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+        val savedJson = sharedPrefs.getString("rememberedAccounts", "[]")
+        val accounts = Json.decodeFromString<MutableList<RememberedAccount>>(savedJson ?: "[]")
+
+        val updatedAccounts = accounts.filterNot { it.email == email }
+        sharedPrefs.edit().putString("rememberedAccounts", Json.encodeToString(updatedAccounts)).apply()
+
+        Toast.makeText(this, "Removed remembered account: $email", Toast.LENGTH_SHORT).show()
+
+        // Update dropdown
+        val updatedEmails = updatedAccounts.map { it.email }
+        val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, updatedEmails)
+        (emailEditText as AutoCompleteTextView).setAdapter(adapter)
+
+        // Also update the in-memory list
+        rememberedAccounts = updatedAccounts.toMutableList()
+    }
 }
+
