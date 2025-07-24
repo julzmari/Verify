@@ -10,45 +10,42 @@
         android:layout_width="match_parent"
         android:layout_height="30dp" />
 
+    <!-- MapView for the Admin Dashboard -->
     <org.osmdroid.views.MapView
         android:id="@+id/adminDashboard_mapView"
         android:layout_width="match_parent"
-        android:layout_height="289dp" />
+        android:layout_height="300dp" />
 
     <TextView
         android:id="@+id/admin_dashboard_recent_enteries"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="#F6F3F3"
-        android:paddingLeft="20sp"
-        android:paddingTop="10dp"
+        android:paddingLeft="20dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
         android:text="@string/recent_entries"
         android:textAlignment="viewStart"
         android:textSize="24sp"
         android:textStyle="bold" />
 
+    <!-- RecyclerView to display recent user entries -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/admin_dashboard_recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_weight="1"
         android:background="#F6F3F3"
         android:paddingStart="20dp"
-        android:paddingTop="10dp"
-        android:paddingRight="20dp">
+        android:paddingRight="20dp" />
 
-    </androidx.recyclerview.widget.RecyclerView>
-
+    <!-- Bottom Navigation Bar -->
     <com.google.android.material.bottomnavigation.BottomNavigationView
         android:id="@+id/bottomNav2"
         style="@style/BottomNavStyle"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_height="80dp"
         android:background="#FFFFFF"
         app:labelVisibilityMode="unlabeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:menu="@menu/bottom_navbar2" />
 </LinearLayout>

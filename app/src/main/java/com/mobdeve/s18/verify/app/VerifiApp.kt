@@ -11,6 +11,10 @@ class VerifiApp : Application() {
     lateinit var supabase: SupabaseClient
     var companyID: String? = null
     var employeeID: String? = null
+    var username: String? = null
+    var location: String? = null
+    var latitude: Double? = null
+    var longitude: Double? = null
     var authorizedRole: String? = null //owner, admin, worker
 
     override fun onCreate() {
