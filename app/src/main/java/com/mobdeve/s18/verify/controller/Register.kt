@@ -40,6 +40,17 @@ class Register : AppCompatActivity() {
         }
     }
 
+    private fun getPasswordStrengthError(password: String): String? {
+        return when {
+            password.length < 8 -> "Password must be at least 8 characters long."
+            !Regex("[A-Z]").containsMatchIn(password) -> "Password must contain at least one uppercase letter."
+            !Regex("[a-z]").containsMatchIn(password) -> "Password must contain at least one lowercase letter."
+            !Regex("[0-9]").containsMatchIn(password) -> "Password must contain at least one number."
+            !Regex("[^A-Za-z0-9]").containsMatchIn(password) -> "Password must contain at least one special character."
+            else -> null
+        }
+    }
+
     private fun registerCompany() {
         val name = nameInput.text.toString().trim()
         val email = emailInput.text.toString().trim().lowercase()
@@ -48,6 +59,12 @@ class Register : AppCompatActivity() {
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Please fill all fields.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val pwError = getPasswordStrengthError(password)
+        if (pwError != null) {
+            Toast.makeText(this, pwError, Toast.LENGTH_SHORT).show()
             return
         }
 
