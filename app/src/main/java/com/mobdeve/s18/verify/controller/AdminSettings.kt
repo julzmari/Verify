@@ -2,6 +2,7 @@ package com.mobdeve.s18.verify.controller
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -31,20 +32,18 @@ class AdminSettings : BaseActivity() {
 
     private lateinit var profileImageView: ImageView
     private lateinit var nameTextView: TextView
-    private lateinit var companyNameTextView: TextView
+    private lateinit var emailTextView: TextView
     private var currentUserId: String? = null
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val selectedImageUri: Uri? = result.data?.data
             selectedImageUri?.let { uri ->
-                // Display
                 Glide.with(this)
                     .load(uri)
                     .circleCrop()
                     .into(profileImageView)
 
-                // Store in DB
                 storeProfileUrl(uri.toString())
                 Toast.makeText(this, "Profile picture updated!", Toast.LENGTH_SHORT).show()
             }
@@ -55,15 +54,24 @@ class AdminSettings : BaseActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_settings)
 
-        profileImageView = findViewById(R.id.profilePic)
-        nameTextView = findViewById(R.id.adminName)
-        companyNameTextView = findViewById(R.id.companyID)
-
         val app = applicationContext as VerifiApp
-        currentUserId = app.employeeID
+        val role = app.authorizedRole
 
-        currentUserId?.let {
-            fetchUserDetails(it)
+        if (role != "admin" && role != "owner") {
+            Toast.makeText(this, "Access denied. Only admin or owner allowed.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        profileImageView = findViewById(R.id.profilePic)
+        nameTextView = findViewById(R.id.tvName)
+        emailTextView = findViewById(R.id.tvEmail)
+
+        if (role == "owner") {
+            fetchCompanyDetails(app.companyID ?: return)
+        } else if (role == "admin") {
+            currentUserId = app.employeeID
+            currentUserId?.let { fetchUserDetails(it) }
         }
 
         val changePic = findViewById<TextView>(R.id.changeProfile)
@@ -72,14 +80,8 @@ class AdminSettings : BaseActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, R.id.nav_settings)
 
-        changePic.setOnClickListener {
-            checkAndRequestPermission()
-        }
-
-        changePass.setOnClickListener {
-            startActivity(Intent(this, ChangePassword::class.java))
-        }
-
+        changePic.setOnClickListener { checkAndRequestPermission() }
+        changePass.setOnClickListener { startActivity(Intent(this, ChangePassword::class.java)) }
         logout.setOnClickListener {
             app.companyID = null
             app.employeeID = null
@@ -88,6 +90,49 @@ class AdminSettings : BaseActivity() {
             val intent = Intent(this, Homepage::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
+        }
+    }
+
+    private fun fetchCompanyDetails(companyId: String) {
+        val supabase = (application as VerifiApp).supabase
+        val json = Json { ignoreUnknownKeys = true }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val result = supabase.postgrest
+                    .from("companies")
+                    .select {
+                        eq("id", companyId)
+                        limit(1)
+                    }
+
+                val companies = json.decodeFromString<List<Company>>(result.body.toString())
+                val company = companies.firstOrNull()
+
+                company?.let {
+                    withContext(Dispatchers.Main) {
+                        nameTextView.text = it.name
+                        emailTextView.text = it.email
+
+                        // for longer emails, tap/click the email to view full email
+                        emailTextView.setOnClickListener {
+                            AlertDialog.Builder(this@AdminSettings)
+                                .setTitle("Company Email")
+                                .setMessage(company.email)
+                                .setPositiveButton("OK", null)
+                                .show()
+                        }
+                        it.profileURL?.let { url ->
+                            Glide.with(this@AdminSettings).load(url).circleCrop().into(profileImageView)
+                        }
+                    }
+                }
+
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@AdminSettings, "Failed to load company: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            }
         }
     }
 
@@ -108,29 +153,21 @@ class AdminSettings : BaseActivity() {
                 val user = users.firstOrNull()
 
                 user?.let {
-                    // Update name
                     withContext(Dispatchers.Main) {
                         nameTextView.text = it.name
-                        // Load profile photo if exists
+                        emailTextView.text = it.email
+
+                        // for longer emails, tap/click the email to view full email
+                        emailTextView.setOnClickListener {
+                            AlertDialog.Builder(this@AdminSettings)
+                                .setTitle("Admin Email")
+                                .setMessage(user.email)
+                                .setPositiveButton("OK", null)
+                                .show()
+                        }
+
                         it.profileURL?.let { url ->
                             Glide.with(this@AdminSettings).load(url).circleCrop().into(profileImageView)
-                        }
-                    }
-
-                    // Now fetch company name using companyID
-                    val companyResult = supabase.postgrest
-                        .from("companies")
-                        .select {
-                            eq("id", it.companyID)
-                            limit(1)
-                        }
-
-                    val companies = json.decodeFromString<List<Company>>(companyResult.body.toString())
-                    val company = companies.firstOrNull()
-
-                    company?.let { comp ->
-                        withContext(Dispatchers.Main) {
-                            companyNameTextView.text = comp.name
                         }
                     }
                 }
@@ -143,20 +180,32 @@ class AdminSettings : BaseActivity() {
         }
     }
 
+
     private fun storeProfileUrl(url: String) {
         val supabase = (application as VerifiApp).supabase
-        val userId = currentUserId ?: return
+        val app = application as VerifiApp
+        val role = app.authorizedRole
+        val companyId = app.companyID
+        val employeeId = app.employeeID
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                supabase.postgrest.from("users").update(
-                    mapOf("profileURL" to url)
-                ) {
-                    eq("id", userId)
+                if (role == "owner" && companyId != null) {
+                    supabase.postgrest.from("companies").update(
+                        mapOf("profileURL" to url)
+                    ) {
+                        eq("id", companyId)
+                    }
+                } else if (role == "admin" && employeeId != null) {
+                    supabase.postgrest.from("users").update(
+                        mapOf("profileURL" to url)
+                    ) {
+                        eq("id", employeeId)
+                    }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@AdminSettings, "Failed to store profile picture: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AdminSettings, "Failed to update profile picture: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -190,3 +239,4 @@ class AdminSettings : BaseActivity() {
         }
     }
 }
+
