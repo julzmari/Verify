@@ -134,7 +134,7 @@ class ManageUser : BaseActivity() {
         val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roleDisplayNames)
         roleSpinner.adapter = adapter
 
-// Set spinner to current user role
+        // Set spinner to current user role
         val currentDisplayRole = reverseRoleMap[user.role] ?: "Regular Worker"
         roleSpinner.setSelection(roleDisplayNames.indexOf(currentDisplayRole))
 
@@ -191,7 +191,7 @@ class ManageUser : BaseActivity() {
                 try {
                     val supabase = (application as VerifiApp).supabase
 
-                    // 1. Check if email exists in companies
+                    // Check if email exists in companies
                     val companyEmailCheck = supabase.postgrest["companies"]
                         .select {
                             eq("email", newEmail)
@@ -199,7 +199,7 @@ class ManageUser : BaseActivity() {
                         .decodeList<JsonObject>()
 
 
-                    // 2. Check if email exists in users
+                    // Check if email exists in users
                     val userEmailCheck = supabase.postgrest["users"]
                         .select {
                             eq("email", newEmail)
@@ -254,8 +254,6 @@ class ManageUser : BaseActivity() {
 
 
 
-
-
     private fun fetchUsersFromSupabase() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -291,3 +289,4 @@ class ManageUser : BaseActivity() {
         }
     }
 }
+
