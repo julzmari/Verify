@@ -39,10 +39,6 @@ class AdminDashboardActivity : BaseActivity() {
         mapView.setTileSource(TileSourceFactory.MAPNIK)
         mapView.setMultiTouchControls(true)
 
-        val startPoint = GeoPoint(14.5646, 120.9936)
-        mapView.controller.setZoom(15.0)
-        mapView.controller.setCenter(startPoint)
-
         fetchUserData()
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
@@ -54,9 +50,10 @@ class AdminDashboardActivity : BaseActivity() {
             try {
                 val app = applicationContext as VerifiApp
                 val supabase = app.supabase
+                val companyID = app.companyID
 
                 // Fetch the 10 most recent entries for all users
-                val recentEntriesResponse = supabase.postgrest["photos?order=datetime.desc&limit=10"]
+                val recentEntriesResponse = supabase.postgrest["photos?company_id=eq.$companyID&order=datetime.desc&limit=10"]
                     .select()
                 val recentEntries = recentEntriesResponse.decodeList<UserEntry>()
 
@@ -65,15 +62,34 @@ class AdminDashboardActivity : BaseActivity() {
                     .select()
                 val allUsers = allUsersLocationsResponse.decodeList<User>()
 
-                val entries = recentEntries
+                // If no entries, set the start point to an empty GeoPoint
+                val firstEntry = recentEntries.firstOrNull()
+
+                val startPoint = if (firstEntry != null) {
+                    GeoPoint(firstEntry.latitude, firstEntry.longitude)  // Use first entry location
+                } else {
+                    GeoPoint(0.0, 0.0) // Empty default location
+                }
 
                 withContext(Dispatchers.Main) {
+                    if (firstEntry != null) {
+                        val firstEntryMarker = Marker(mapView).apply {
+                            position = startPoint
+                            title = "First Entry"
+                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                            icon = ContextCompat.getDrawable(this@AdminDashboardActivity, org.osmdroid.library.R.drawable.marker_default)
+                        }
+                        mapView.overlays.add(firstEntryMarker)
+                    }
+
+                    mapView.controller.setZoom(15.0)
+                    mapView.controller.setCenter(startPoint)
 
                     addUserMarkersToMap(allUsers, recentEntries)
 
                     recyclerView.layoutManager = LinearLayoutManager(this@AdminDashboardActivity)
-                    recyclerView.adapter = UserEntryAdapter(entries) { user ->
-                        // Handle user click, if needed
+                    recyclerView.adapter = UserEntryAdapter(recentEntries) { user ->
+                        // Handle user click
                         val userLocation = GeoPoint(user.latitude, user.longitude)
                         mapView.controller.animateTo(userLocation)
 
@@ -92,7 +108,7 @@ class AdminDashboardActivity : BaseActivity() {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("AdminDashboard", "Error fetching user data: ${e.message}")
+                Log.e("AdminDashboard", "Error fetching user data", e)
             }
         }
     }
@@ -104,24 +120,22 @@ class AdminDashboardActivity : BaseActivity() {
             // Find the last submission for the current user
             val lastSubmission = recentEntries.find { it.user_id == user.id }
 
-            // If no submission, set to default GeoPoint or handle it accordingly
-            val userPoint = if (lastSubmission != null) {
-                GeoPoint(lastSubmission.latitude, lastSubmission.longitude)
-            } else {
-                GeoPoint(14.5646, 120.9936) // Default location
-            }
+            // If no submission, don't add a marker for this user
+            if (lastSubmission != null) {
+                val userPoint = GeoPoint(lastSubmission.latitude, lastSubmission.longitude)
 
-            // Create the marker for the user
-            val marker = Marker(mapView).apply {
-                position = userPoint
-                title = user.name
-                subDescription = "${user.name} - ${lastSubmission?.status ?: "Unknown"}"
-                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                icon = ContextCompat.getDrawable(this@AdminDashboardActivity, org.osmdroid.library.R.drawable.marker_default)
-            }
+                // Create the marker for the user
+                val marker = Marker(mapView).apply {
+                    position = userPoint
+                    title = user.name
+                    subDescription = "${user.name} - ${lastSubmission.status}"
+                    setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                    icon = ContextCompat.getDrawable(this@AdminDashboardActivity, org.osmdroid.library.R.drawable.marker_default)
+                }
 
-            // Add the marker to the map
-            mapView.overlays.add(marker)
+                // Add the marker to the map
+                mapView.overlays.add(marker)
+            }
         }
 
         // Invalidate the map to ensure new markers are rendered
