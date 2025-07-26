@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.widget.CheckBox 
-import kotlinx.serialization.json.Json
 import android.widget.AutoCompleteTextView
 import android.widget.ArrayAdapter
 import android.widget.TextView
