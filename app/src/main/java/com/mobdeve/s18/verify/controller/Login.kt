@@ -18,6 +18,7 @@ import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.Company
 import com.mobdeve.s18.verify.model.User
 
+
 import android.widget.CheckBox 
 import kotlinx.serialization.json.Json
 import android.widget.AutoCompleteTextView
@@ -37,6 +38,8 @@ class Login : AppCompatActivity() {
     private lateinit var passwordEditText: EditText
     private lateinit var loginButton: Button
     private lateinit var rememberMeCheckBox: CheckBox
+    private lateinit var forgotPasswordText: TextView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +48,8 @@ class Login : AppCompatActivity() {
         emailEditText = findViewById(R.id.login_txt_email_input)
         passwordEditText = findViewById(R.id.login_txt_pw_input)
         loginButton = findViewById(R.id.btn_login)
+        forgotPasswordText = findViewById<TextView>(R.id.login_text_forgotpw)
+
 
         rememberMeCheckBox = findViewById(R.id.login_checkBox)
         rememberMeCheckBox.isChecked = false // Always reset
@@ -71,7 +76,15 @@ class Login : AppCompatActivity() {
         loginText.setOnClickListener {
             startActivity(Intent(this, Register::class.java))
         }
-        
+
+        //forgot password
+        val forgotPasswordText = findViewById<TextView>(R.id.login_text_forgotpw)
+        forgotPasswordText.setOnClickListener {
+            startActivity(Intent(this, ForgotPassword::class.java))
+        }
+
+
+
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim().lowercase()
             val password = passwordEditText.text.toString()
