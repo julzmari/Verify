@@ -11,7 +11,7 @@
     <color name="Delivery">#4CAF50</color>
     <color name="green_text_1">#2E7D32</color>
     <color name="green_background_1">#E8F5E9</color>
-    <color name="InTransit">#FFC107</color>
-    <color name="UnexpectedStop">#F44336</color>
+    <color name="InTransit">#E2A800</color>
+    <color name="UnexpectedStop">#C8372D</color>
 
 </resources>

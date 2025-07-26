@@ -65,14 +65,10 @@ class AdminDashboardActivity : BaseActivity() {
                     .select()
                 val allUsers = allUsersLocationsResponse.decodeList<User>()
 
-                val entries = if (recentEntries.isEmpty()) {
-                    getSampleUserEntries()
-                } else {
-                    recentEntries
-                }
+                val entries = recentEntries
 
                 withContext(Dispatchers.Main) {
-                    // Add markers for all users based on the last submission
+
                     addUserMarkersToMap(allUsers, recentEntries)
 
                     recyclerView.layoutManager = LinearLayoutManager(this@AdminDashboardActivity)
@@ -130,35 +126,6 @@ class AdminDashboardActivity : BaseActivity() {
 
         // Invalidate the map to ensure new markers are rendered
         mapView.invalidate()
-    }
-
-    private fun getSampleUserEntries(): List<UserEntry> {
-        return listOf(
-            UserEntry(
-                id = "1",
-                user_id = "user-uuid-1",
-                company_id = "company-uuid-1",
-                image_url = "https://example.com/image1.jpg",
-                status = "Delivery",
-                latitude = 14.5646,
-                longitude = 120.9936,
-                datetime = "2025-06-14T04:00:00Z",
-                username = "user1",
-                location_name = "BGC, Manila",
-            ),
-            UserEntry(
-                id = "2",
-                user_id = "user-uuid-2",
-                company_id = "company-uuid-2",
-                image_url = "https://example.com/image2.jpg",
-                status = "In-transit",
-                latitude = 14.5515,
-                longitude = 121.0490,
-                datetime = "2025-06-14T05:20:00Z",
-                username = "user2",
-                location_name = "Makati, Manila",
-            )
-        )
     }
 
     override fun onResume() {

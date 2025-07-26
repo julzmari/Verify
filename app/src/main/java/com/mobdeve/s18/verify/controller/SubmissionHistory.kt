@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import android.widget.ImageView
+import android.widget.RadioButton
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -42,6 +43,7 @@ class SubmissionHistory : BaseActivity() {
     private var selectedFromDate: String? = null
     private var selectedToDate: String? = null
     private val selectedStatuses: MutableSet<String> = mutableSetOf()
+    private var sortOrder: String = "desc"
 
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,7 +67,6 @@ class SubmissionHistory : BaseActivity() {
 
         userEntriesFiltered = mutableListOf()
 
-        // Fetch entries
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 if (role == "worker") {
@@ -73,12 +74,12 @@ class SubmissionHistory : BaseActivity() {
                     val userResponse = supabase.postgrest["users?id=eq.$employeeID"].select()
                     val user = userResponse.decodeList<User>().firstOrNull()
                     app.username = user?.name
-                    val userEntriesResponse = supabase.postgrest["photos?user_id=eq.$employeeID&order=datetime.desc"]
+                    val userEntriesResponse = supabase.postgrest["photos?user_id=eq.$employeeID&order=datetime.$sortOrder"]
                         .select()
                     userEntries = userEntriesResponse.decodeList<UserEntry>()
                 } else {
                     val companyID = app.companyID
-                    val userEntriesResponse = supabase.postgrest["photos?company_id=eq.$companyID&order=datetime.desc"]
+                    val userEntriesResponse = supabase.postgrest["photos?company_id=eq.$companyID&order=datetime.$sortOrder"]
                         .select()
                     userEntries = userEntriesResponse.decodeList<UserEntry>()
                 }
@@ -111,7 +112,6 @@ class SubmissionHistory : BaseActivity() {
         }
     }
 
-    // Show filter dialog
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SetTextI18n")
     private fun showFilterDialog() {
@@ -125,10 +125,8 @@ class SubmissionHistory : BaseActivity() {
         val submitButton = dialogView.findViewById<Button>(R.id.submitBtn)
         val clearFiltersButton = dialogView.findViewById<Button>(R.id.clearBtn)
 
-        // From DatePicker logic
         val selectFromDateButton = dialogView.findViewById<Button>(R.id.selectFromDateBtn)
         val selectedFromDateText = dialogView.findViewById<TextView>(R.id.selectedFromDateText)
-
         selectedFromDateText.text = selectedFromDate?.let { formatForDisplay(it) } ?: "No date selected"
         selectFromDateButton.setOnClickListener {
             showDateTimePickerDialog { dateTime ->
@@ -137,15 +135,6 @@ class SubmissionHistory : BaseActivity() {
             }
         }
 
-        /*selectedFromDateText.text = selectedFromDate ?: "No date selected" // Show previously selected or "No date selected"
-        selectFromDateButton.setOnClickListener {
-            showDateTimePickerDialog { dateTime ->
-                selectedFromDate = dateTime
-                selectedFromDateText.text = dateTime
-            }
-        }*/
-
-        // To DatePicker logic
         val selectToDateButton = dialogView.findViewById<Button>(R.id.selectToDateBtn)
         val selectedToDateText = dialogView.findViewById<TextView>(R.id.selectedToDateText)
         selectedToDateText.text = selectedToDate?.let { formatForDisplay(it) } ?: "No date selected"
@@ -156,20 +145,33 @@ class SubmissionHistory : BaseActivity() {
             }
         }
 
-        /*selectedToDateText.text = selectedToDate ?: "No date selected" // Show previously selected or "No date selected"
-        selectToDateButton.setOnClickListener {
-            showDateTimePickerDialog { dateTime ->
-                selectedToDate = dateTime
-                selectedToDateText.text = dateTime
-            }
-        }*/
+        val sortAscendingRadioButton = dialogView.findViewById<RadioButton>(R.id.sortAscending)
+        val sortDescendingRadioButton = dialogView.findViewById<RadioButton>(R.id.sortDescending)
 
-        // Restore previously selected statuses
+        if (sortOrder == "asc") {
+            sortAscendingRadioButton.isChecked = true
+        } else {
+            sortDescendingRadioButton.isChecked = true
+        }
+
+        sortAscendingRadioButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                sortOrder = "asc"
+                sortDescendingRadioButton.isChecked = false
+            }
+        }
+
+        sortDescendingRadioButton.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                sortOrder = "desc"
+                sortAscendingRadioButton.isChecked = false
+            }
+        }
+
         statusDeliveryCheckBox.isChecked = selectedStatuses.contains("Delivery")
         statusInTransitCheckBox.isChecked = selectedStatuses.contains("In-transit")
         statusUnexpectedCheckBox.isChecked = selectedStatuses.contains("Unexpected Stop")
 
-        // Clear filters action
         clearFiltersButton.setOnClickListener {
             selectedFromDate = null
             selectedToDate = null
@@ -179,17 +181,17 @@ class SubmissionHistory : BaseActivity() {
             statusDeliveryCheckBox.isChecked = false
             statusInTransitCheckBox.isChecked = false
             statusUnexpectedCheckBox.isChecked = false
+            sortOrder = "desc"
+            sortDescendingRadioButton.isChecked = true
+            sortAscendingRadioButton.isChecked = false
         }
 
-        // Submit button action
         submitButton.setOnClickListener {
-            // Get selected statuses
             selectedStatuses.clear()
             if (statusDeliveryCheckBox.isChecked) selectedStatuses.add("Delivery")
             if (statusInTransitCheckBox.isChecked) selectedStatuses.add("In-transit")
             if (statusUnexpectedCheckBox.isChecked) selectedStatuses.add("Unexpected Stop")
 
-            // Apply filters
             applyFilters()
             dialog.dismiss()
         }
@@ -201,7 +203,6 @@ class SubmissionHistory : BaseActivity() {
         dialog.show()
     }
 
-    // Show DateTimePickerDialog
     @RequiresApi(Build.VERSION_CODES.O)
     private fun showDateTimePickerDialog(onDateTimeSelected: (String) -> Unit) {
         val calendar = Calendar.getInstance()
@@ -213,14 +214,10 @@ class SubmissionHistory : BaseActivity() {
 
         val datePickerDialog = DatePickerDialog(this, { _, selectedYear, selectedMonth, selectedDay ->
             val timePickerDialog = TimePickerDialog(this, { _, selectedHour, selectedMinute ->
-
                 val selectedDateTime = LocalDateTime.of(selectedYear, selectedMonth + 1, selectedDay, selectedHour, selectedMinute)
                 val dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
-
                 val formattedDateTime = selectedDateTime.format(dateTimeFormatter)
-
                 onDateTimeSelected(formattedDateTime)
-
             }, hour, minute, false)
             timePickerDialog.show()
         }, year, month, day)
@@ -255,7 +252,13 @@ class SubmissionHistory : BaseActivity() {
             matchesSearch && matchesStatus && matchesFromDate && matchesToDate
         }
 
-        recyclerView.adapter = UserEntryAdapter(filteredList) { }
+        val sortedList = if (sortOrder == "asc") {
+            filteredList.sortedBy { it.datetime }
+        } else {
+            filteredList.sortedByDescending { it.datetime }
+        }
+
+        recyclerView.adapter = UserEntryAdapter(sortedList) { }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
@@ -263,7 +266,6 @@ class SubmissionHistory : BaseActivity() {
         return try {
             val supabaseFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSS")
             val dateTime = LocalDateTime.parse(supabaseDateTime, supabaseFormat)
-
             DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm a").format(dateTime)
         } catch (e: Exception) {
             Log.e("DateFormat", "Error formatting date: $supabaseDateTime", e)
