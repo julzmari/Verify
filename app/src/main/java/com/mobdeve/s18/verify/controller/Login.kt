@@ -16,9 +16,14 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import android.widget.CheckBox 
+import kotlinx.serialization.json.Json
+import android.widget.AutoCompleteTextView
+import android.widget.ArrayAdapter
+import android.widget.TextView
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.mindrot.jbcrypt.BCrypt
 
@@ -31,6 +36,8 @@ class Login : AppCompatActivity() {
     private lateinit var passwordEditText: EditText
     private lateinit var loginButton: Button
     private lateinit var rememberMeCheckBox: CheckBox
+    private lateinit var forgotPasswordText: TextView
+
 
     private lateinit var rememberedAccounts: MutableList<RememberedAccount>
 
@@ -41,6 +48,7 @@ class Login : AppCompatActivity() {
         emailEditText = findViewById(R.id.login_txt_email_input)
         passwordEditText = findViewById(R.id.login_txt_pw_input)
         loginButton = findViewById(R.id.btn_login)
+        forgotPasswordText = findViewById<TextView>(R.id.login_text_forgotpw)
         rememberMeCheckBox = findViewById(R.id.login_checkBox)
         rememberMeCheckBox.isChecked = false
 
@@ -81,6 +89,14 @@ class Login : AppCompatActivity() {
         findViewById<TextView>(R.id.login_txt_loginQuestion).setOnClickListener {
             startActivity(Intent(this, Register::class.java))
         }
+
+
+        //forgot password
+        val forgotPasswordText = findViewById<TextView>(R.id.login_text_forgotpw)
+        forgotPasswordText.setOnClickListener {
+            startActivity(Intent(this, ForgotPassword::class.java))
+        }
+
 
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim().lowercase()
