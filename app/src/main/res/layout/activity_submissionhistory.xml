@@ -71,7 +71,7 @@
                     android:layout_height="match_parent"
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
-                    android:hint="Search users..."
+                    android:hint="Search submissions"
                     android:paddingStart="8dp"
                     android:textColor="#103F27"
                     android:textColorHint="#999999" />
