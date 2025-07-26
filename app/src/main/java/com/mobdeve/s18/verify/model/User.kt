@@ -12,5 +12,6 @@ data class User(
     val email: String,
     val isActive: Boolean,
     val createdAt: Instant,
-    val password: String
+    val password: String,
+    val profileURL: String? = null
 )

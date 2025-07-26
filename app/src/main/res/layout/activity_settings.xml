@@ -65,21 +65,24 @@
                 android:paddingStart="50dp"
                 android:gravity="center_vertical">
 
-                <TextView
+                 <TextView
+                    android:id="@+id/userName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="John Doe"
+                    android:layout_gravity="end"
                     android:textColor="@android:color/white"
-                    android:textSize="20sp"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
                     android:layout_marginLeft="50dp"
                     />
 
                 <TextView
+                    android:id="@+id/companyID"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Company Name"
+                    android:layout_gravity="end"
                     android:textColor="@android:color/white"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     android:layout_marginLeft="10dp"
                     />
             </LinearLayout>

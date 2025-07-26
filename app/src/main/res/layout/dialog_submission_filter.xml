@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:elevation="10dp"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+    <!-- Status Checkbox Group (Single Row) -->
+    <TextView
+        android:id="@+id/statusLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="Select Status:"
+        android:textColor="@color/material_dynamic_neutral40"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <CheckBox
+            android:id="@+id/statusDelivery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/green_primary"
+            android:text="Delivery"
+            android:textColor="@color/green_primary"
+            android:textSize="12sp" />
+
+        <CheckBox
+            android:id="@+id/statusInTransit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:buttonTint="@color/green_primary"
+            android:text="In-Transit"
+            android:textColor="@color/green_primary"
+            android:textSize="12sp" />
+
+        <CheckBox
+            android:id="@+id/statusUnexpected"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:buttonTint="@color/green_primary"
+            android:text="Unexpected Stop"
+            android:textColor="@color/green_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- Sorting Options: Radio Buttons -->
+    <TextView
+        android:id="@+id/sortLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="Sort by Date:"
+        android:textColor="@color/material_dynamic_neutral40"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <RadioButton
+            android:id="@+id/sortAscending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:buttonTint="@color/green_primary"
+            android:text="Ascending"
+            android:textColor="@color/green_primary"
+            android:textSize="12sp" />
+
+        <RadioButton
+            android:id="@+id/sortDescending"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="8dp"
+            android:buttonTint="@color/green_primary"
+            android:text="Descending (default)"
+            android:textColor="@color/green_primary"
+            android:textSize="12sp" />
+    </LinearLayout>
+
+    <!-- From DatePicker for Date Filtering -->
+    <TextView
+        android:id="@+id/fromDateLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="From Date:"
+        android:textColor="@color/material_dynamic_neutral40"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/selectFromDateBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose From Date"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/selectedFromDateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="No date selected"
+            android:textColor="@color/green_primary"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- To DatePicker for Date Filtering -->
+    <TextView
+        android:id="@+id/toDateLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="To Date:"
+        android:textColor="@color/material_dynamic_neutral40"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="start|center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/selectToDateBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Choose To Date"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/selectedToDateText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:text="No date selected"
+            android:textColor="@color/green_primary"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <!-- Action Buttons: Cancel, Apply Filters, and Clear Filters -->
+    <LinearLayout
+        style="?android:attr/buttonBarStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginBottom="20dp">
+
+        <Button
+            android:id="@+id/clearBtn"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:text="Clear Filters"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/cancelBtn"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:text="Cancel"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/submitBtn"
+            style="?android:attr/buttonBarButtonStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Apply Filters"
+            android:textSize="12sp" />
+    </LinearLayout>
+</LinearLayout>

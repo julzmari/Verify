@@ -28,12 +28,14 @@ import kotlinx.coroutines.*
 
 
 class UserAdapter(
-    private var users: MutableList<User>,
+    private val displayList: MutableList<User>,
     private val onUserClick: (User) -> Unit,
     private val currentUserRole: String
-
 ) : RecyclerView.Adapter<UserAdapter.UserViewHolder>() {
 
+    private var allUsers: MutableList<User> = mutableListOf()
+    private var filteredStatus: Boolean? = null
+    private var currentSearchQuery: String = ""
 
     inner class UserViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val username: TextView = itemView.findViewById(R.id.tvUsername)
@@ -41,7 +43,6 @@ class UserAdapter(
         val toggleButton: Button = itemView.findViewById(R.id.btnStatus)
         val createdAt: TextView = itemView.findViewById(R.id.tvCreatedAt)
         val role: TextView = itemView.findViewById(R.id.tvRole)
-
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): UserViewHolder {
@@ -49,23 +50,18 @@ class UserAdapter(
         return UserViewHolder(view)
     }
 
-    override fun getItemCount(): Int {
-        Log.d("UserAdapter", "Item count: ${users.size}")
-        return users.size
-    }
+    override fun getItemCount(): Int = displayList.size
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
-        val user = users[position]
-        Log.d("UserAdapter", "Binding user at position $position: ${user.name}")
+        val user = displayList[position]
 
         holder.username.text = user.name
         holder.email.text = user.email
 
-
         val displayRole = when (user.role) {
             "admin" -> "Admin"
             "reg_employee" -> "Regular Worker"
-            else -> user.role // fallback to raw value if unknown
+            else -> user.role
         }
         holder.role.text = "Role: $displayRole"
 
@@ -81,23 +77,21 @@ class UserAdapter(
             )
         )
 
+        val canToggle = when (currentUserRole) {
+            "owner" -> true
+            "admin" -> user.role == "reg_employee"
+            else -> false
+        }
 
         holder.toggleButton.setOnClickListener {
-
-            val canToggle = when (currentUserRole) {
-                "owner" -> true
-                "admin" -> user.role == "reg_employee"
-                else -> false
-            }
-
             if (!canToggle) {
                 Toast.makeText(holder.itemView.context, "You don't have permission to update this user", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val updatedUser = user.copy(isActive = !user.isActive)
-            users[position] = updatedUser
-            notifyItemChanged(position)
+            allUsers[allUsers.indexOfFirst { it.id == updatedUser.id }] = updatedUser
+            applyFilters()
             updateUserStatusInSupabase(updatedUser, holder.itemView.context)
         }
 
@@ -106,7 +100,7 @@ class UserAdapter(
                 onUserClick(user)
             }
         } else {
-            holder.itemView.setOnClickListener(null) // no-op
+            holder.itemView.setOnClickListener(null)
         }
     }
 
@@ -114,48 +108,62 @@ class UserAdapter(
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val supabase = (context.applicationContext as VerifiApp).supabase
-                val response = supabase.postgrest["users?id=eq.${user.id}"]
+                supabase.postgrest["users?id=eq.${user.id}"]
                     .update(mapOf("isActive" to user.isActive))
-                Log.d("Supabase", "Update response: $response")
             } catch (e: Exception) {
                 Log.e("Supabase", "Exception during update: ${e.message}")
             }
         }
     }
 
-    // Use this from ManageUser to update the list
     fun setUsers(newUsers: List<User>) {
-        this.users = newUsers.toMutableList()
-        notifyDataSetChanged()
+        allUsers = newUsers.toMutableList()
+        filteredStatus = null
+        currentSearchQuery = ""
+        applyFilters()
     }
 
     fun addUser(user: User) {
-        users.add(user)
-        notifyItemInserted(users.size - 1)
-    }
-
-    fun filter(query: String) {
-        users = users.filter {
-            it.name.contains(query, ignoreCase = true) || it.email.contains(query, ignoreCase = true)
-        }.toMutableList()
-        notifyDataSetChanged()
-    }
-
-    fun filterByStatus(showActive: Boolean?) {
-        users = when (showActive) {
-            true -> users.filter { it.isActive }.toMutableList()
-            false -> users.filter { !it.isActive }.toMutableList()
-            null -> users.toMutableList()
-        }
-        notifyDataSetChanged()
+        allUsers.add(user)
+        applyFilters()
     }
 
     fun updateUser(updatedUser: User) {
-        val index = users.indexOfFirst { it.id == updatedUser.id }
+        val index = allUsers.indexOfFirst { it.id == updatedUser.id }
         if (index != -1) {
-            users[index] = updatedUser
-            notifyItemChanged(index)
+            allUsers[index] = updatedUser
+            applyFilters()
         }
     }
 
+    fun filterByStatus(isActive: Boolean?) {
+        filteredStatus = isActive
+        applyFilters()
+    }
+
+    fun filter(query: String) {
+        currentSearchQuery = query
+        applyFilters()
+    }
+
+    private fun applyFilters() {
+        val statusFiltered = when (filteredStatus) {
+            true -> allUsers.filter { it.isActive }
+            false -> allUsers.filter { !it.isActive }
+            null -> allUsers
+        }
+
+        val searchFiltered = if (currentSearchQuery.isNotEmpty()) {
+            statusFiltered.filter {
+                it.name.contains(currentSearchQuery, ignoreCase = true) ||
+                        it.email.contains(currentSearchQuery, ignoreCase = true)
+            }
+        } else {
+            statusFiltered
+        }
+
+        displayList.clear()
+        displayList.addAll(searchFiltered)
+        notifyDataSetChanged()
+    }
 }

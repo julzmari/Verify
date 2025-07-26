@@ -1,13 +1,11 @@
 package com.mobdeve.s18.verify.controller
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
-
 
 open class BaseActivity : AppCompatActivity() {
 

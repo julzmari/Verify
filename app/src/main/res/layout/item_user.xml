@@ -3,23 +3,21 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    android:orientation="vertical"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
         android:background="#145239"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:padding="10dp">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:background="#145239"
-            android:gravity="start"
-            android:orientation="vertical"
-            android:padding="10dp">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
             <TextView
                 android:id="@+id/tvUsername"
@@ -37,7 +35,9 @@
                 android:layout_marginBottom="2dp"
                 android:text="username_lastN@example.com"
                 android:textColor="#DDDDDD"
-                android:textSize="14sp" />
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end" />
 
             <TextView
                 android:id="@+id/tvCreatedAt"
@@ -57,12 +57,11 @@
                 android:textSize="12sp" />
 
         </LinearLayout>
-
+        
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_gravity="end"
-            android:gravity="bottom|end"
+            android:gravity="end|bottom"
             android:orientation="vertical">
 
             <Button
@@ -70,7 +69,7 @@
                 android:layout_width="122dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:layout_marginRight="10dp"
+                android:layout_marginRight="0dp"
                 android:backgroundTint="#4CAF50"
                 android:text="Active"
                 android:textColor="#FFFFFF" />

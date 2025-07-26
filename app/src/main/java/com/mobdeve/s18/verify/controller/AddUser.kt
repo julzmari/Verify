@@ -51,6 +51,16 @@ class AddUser : BaseActivity() {
             startActivity(Intent(this, ManageUser::class.java))
         }
 
+        fun getPasswordStrengthError(password: String): String? {
+            return when {
+                password.length < 8 -> "Password must be at least 8 characters long."
+                !Regex("[A-Z]").containsMatchIn(password) -> "Password must contain at least one uppercase letter."
+                !Regex("[a-z]").containsMatchIn(password) -> "Password must contain at least one lowercase letter."
+                !Regex("[0-9]").containsMatchIn(password) -> "Password must contain at least one number."
+                !Regex("[^A-Za-z0-9]").containsMatchIn(password) -> "Password must contain at least one special character."
+                else -> null
+            }
+        }
 
         addUserButton.setOnClickListener {
             val name = nameInput.text.toString().trim()
@@ -72,6 +82,13 @@ class AddUser : BaseActivity() {
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+
+            val pwError = getPasswordStrengthError(password)
+            if (pwError != null) {
+                Toast.makeText(this, pwError, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
 
             if (password != confirmPassword) {
                 Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
@@ -121,7 +138,8 @@ class AddUser : BaseActivity() {
                         email = email,
                         password = hashedPassword,
                         isActive = true,
-                        createdAt = Clock.System.now()
+                        createdAt = Clock.System.now(),
+                        profileURL = ""
                     )
 
                     val result = supabase.postgrest["users"].insert(newUser)
@@ -142,4 +160,5 @@ class AddUser : BaseActivity() {
             }
         }
     }
+
 }

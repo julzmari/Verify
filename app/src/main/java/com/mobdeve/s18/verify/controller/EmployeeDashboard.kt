@@ -1,85 +1,135 @@
 package com.mobdeve.s18.verify.controller
 
+import android.Manifest
 import android.annotation.SuppressLint
-import android.content.Context
 import android.content.Intent
+import android.location.Geocoder
+import android.location.Location
+import android.os.Build
 import android.os.Bundle
-import android.widget.FrameLayout
+import android.util.Log
+import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
 import com.mobdeve.s18.verify.R
-import org.osmdroid.config.Configuration
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory
-import org.osmdroid.util.GeoPoint
-import org.osmdroid.views.MapView
-import org.osmdroid.views.overlay.Marker
+import com.mobdeve.s18.verify.app.VerifiApp
+import com.mobdeve.s18.verify.model.User
+import com.mobdeve.s18.verify.model.UserEntry
+import io.github.jan.supabase.postgrest.postgrest
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
+import java.time.ZoneOffset
 
 class EmployeeDashboard : BaseActivity() {
 
-    private lateinit var mapView: MapView
     private lateinit var welcomeText: TextView
-    private lateinit var submissionTv: TextView
+    private lateinit var submissionCount: TextView
     private lateinit var currentLocation: TextView
+    private lateinit var fusedLocationClient: FusedLocationProviderClient
+    private lateinit var captureButton: Button
 
+    private val locationPermissionRequest = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            getCurrentLocation()
+        } else {
+            Log.e("Location", "Permission denied")
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Configuration.getInstance().load(applicationContext, getSharedPreferences("osmdroid", MODE_PRIVATE))
         setContentView(R.layout.activity_employeedashboard)
 
-        val sharedPref = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val username = sharedPref.getString("loggedInUser", "Guest")
+        welcomeText = findViewById(R.id.welcomeText)
+        submissionCount = findViewById(R.id.submissionCount)
+        currentLocation = findViewById(R.id.currentLocationTv)
 
-        welcomeText = findViewById<TextView>(R.id.welcomeText)
-        submissionTv = findViewById<TextView>(R.id.submissionTv)
-        currentLocation = findViewById<TextView>(R.id.currentLocationTv)
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+        locationPermissionRequest.launch(Manifest.permission.ACCESS_FINE_LOCATION)
 
-        welcomeText.text = "Welcome, $username!"
-        submissionTv.text = "Today's Submissions: 0"
-        currentLocation.text = " Current Location: De La Salle University"
+        fetchUserData()
 
-        mapView = findViewById(R.id.mapView)
-        mapView.setTileSource(TileSourceFactory.MAPNIK)
-        mapView.setMultiTouchControls(true)
+        captureButton = findViewById<Button>(R.id.captureBtnDashboard)
 
-        val startPoint = GeoPoint(14.5646, 120.9936)
-        val mapController = mapView.controller
-        mapController.setZoom(15.0)
-        mapController.setCenter(startPoint)
-
-        val marker = Marker(mapView)
-        marker.position = startPoint
-        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-        marker.title = "Delivery Zone"
-        mapView.overlays.add(marker)
-
-        val cameraIcon = findViewById<FrameLayout>(R.id.captureBtn)
-        cameraIcon.setOnClickListener {
+        captureButton.setOnClickListener {
             val intent = Intent(this, UserCamera::class.java)
             startActivity(intent)
         }
-
-        // Bottom Navigation setup
+        
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         setupBottomNavigation(bottomNav, R.id.nav_home)
-
     }
 
-    override fun onResume() {
-        super.onResume()
-        mapView.onResume()
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun fetchUserData() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val app = applicationContext as VerifiApp
+                val supabase = app.supabase
+                val employeeID = app.employeeID
+
+                val userResponse = supabase.postgrest["users?id=eq.$employeeID"].select()
+                val user = userResponse.decodeList<User>().firstOrNull()
+
+                app.username = user?.name
+
+                val today = LocalDate.now(ZoneOffset.UTC)
+                val startOfDay = today.atStartOfDay().toString()
+                val endOfDay = today.plusDays(1).atStartOfDay().toString()
+
+                val response = supabase.postgrest["photos?user_id=eq.$employeeID&datetime=gte.$startOfDay&datetime=lt.$endOfDay"]
+                    .select()
+
+                val submissionTodayCount = response.decodeList<UserEntry>().size
+
+                withContext(Dispatchers.Main) {
+                    welcomeText.text = "Welcome, ${user?.name ?: "Unknown"}!"
+                    submissionCount.text = submissionTodayCount.toString()
+                }
+
+            } catch (e: Exception) {
+                Log.e("Supabase", "Error fetching user/submissions: ${e.message}")
+            }
+        }
     }
 
-    override fun onPause() {
-        super.onPause()
-        mapView.onPause()
-    }
+    @SuppressLint("MissingPermission")
+    private fun getCurrentLocation() {
+        fusedLocationClient.lastLocation
+            .addOnSuccessListener { location: Location? ->
+                if (location != null) {
 
-    override fun onDestroy() {
-        super.onDestroy()
-        mapView.onDetach()
+                    val geocoder = Geocoder(this)
+                    try {
+                        val addressList = geocoder.getFromLocation(location.latitude, location.longitude, 1)
+                        val locationName = addressList?.firstOrNull()?.getAddressLine(0) ?: "Unknown location"
+                        currentLocation.text = locationName
+                        app.location = locationName
+                    } catch (e: Exception) {
+                        Log.e("Location", "Geocoder error: ${e.message}")
+                        currentLocation.text = "Unable to fetch location"
+                    }
+
+                    app.longitude = location.longitude
+                    app.latitude = location.latitude
+
+                } else {
+                    Log.e("Location", "Location is null")
+                }
+            }
+            .addOnFailureListener {
+                Log.e("Location", "Error getting location: ${it.message}")
+            }
     }
 }
-
-

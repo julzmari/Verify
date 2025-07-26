@@ -22,6 +22,7 @@ fun UserParcelable.toUser(): User {
         name = this.name,
         email = this.email,
         isActive = this.isActive,
-        createdAt = Instant.parse(this.dateCreated)
+        createdAt = Instant.parse(this.dateCreated),
+        profileURL = ""
     )
 }

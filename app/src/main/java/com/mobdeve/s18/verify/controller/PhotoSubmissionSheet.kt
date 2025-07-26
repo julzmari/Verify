@@ -7,15 +7,16 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.EditText
 import android.widget.ImageView
 import android.widget.RadioGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.mobdeve.s18.verify.R
+import android.graphics.Matrix
+import androidx.core.graphics.createBitmap
 
 class PhotoSubmissionSheet(
     private val photoBitmap: Bitmap,
-    private val onSubmit: (status: String, note: String) -> Unit
+    private val onSubmit: (status: String, fullSizeBitmap: Bitmap) -> Unit
 ) : BottomSheetDialogFragment() {
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -35,22 +36,24 @@ class PhotoSubmissionSheet(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val previewImage = view.findViewById<ImageView>(R.id.previewImage)
         val statusGroup = view.findViewById<RadioGroup>(R.id.statusRadioGroup)
-        val noteInput = view.findViewById<EditText>(R.id.noteInput)
         val submitBtn = view.findViewById<Button>(R.id.submitBtn)
         val cancelBtn = view.findViewById<Button>(R.id.cancelBtn)
 
-        previewImage.setImageBitmap(photoBitmap)
+        val previewBitmap = create3x4Preview(photoBitmap)
+        previewImage.setImageBitmap(previewBitmap)
+
+        previewImage.setImageBitmap(previewBitmap)
 
         submitBtn.setOnClickListener {
             val selectedId = statusGroup.checkedRadioButtonId
             val status = when (selectedId) {
                 R.id.statusDelivery -> "Delivery"
-                R.id.statusInTransit -> "In-Transit"
+                R.id.statusInTransit -> "In-transit"
                 R.id.statusUnexpected -> "Unexpected Stop"
                 else -> "Unknown"
             }
-            val note = noteInput.text.toString().trim()
-            onSubmit(status, note)
+
+            onSubmit(status, photoBitmap)
             dismiss()
         }
 
@@ -58,4 +61,43 @@ class PhotoSubmissionSheet(
             dismiss()
         }
     }
+
+    private fun create3x4Preview(source: Bitmap): Bitmap {
+        // Determine target dimensions (3:4 aspect ratio)
+        val targetWidth = (resources.displayMetrics.widthPixels * 0.8).toInt()
+        val targetHeight = (targetWidth * 4) / 3
+
+        // Create transformation matrix
+        val matrix = Matrix().apply {
+            // Calculate scale factors
+            val scaleX = targetWidth.toFloat() / source.width
+            val scaleY = targetHeight.toFloat() / source.height
+            val scale = scaleX.coerceAtMost(scaleY) // Maintain aspect ratio
+
+            // Apply uniform scale
+            postScale(scale, scale)
+
+            // Center the image
+            postTranslate(
+                ((targetWidth - source.width * scale) / 2f),
+                ((targetHeight - source.height * scale) / 2f)
+            )
+        }
+
+        // Create new bitmap with exact 3:4 dimensions
+        val previewBitmap: Bitmap = createBitmap(targetWidth, targetHeight)
+
+        val canvas: android.graphics.Canvas = android.graphics.Canvas(previewBitmap)
+        canvas.drawColor(android.graphics.Color.TRANSPARENT)
+        canvas.drawBitmap(source, matrix, null)
+
+        return previewBitmap
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        // Clean up the preview bitmap if needed
+        // (The original photoBitmap will be managed by the caller)
+    }
 }
+

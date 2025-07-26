@@ -10,5 +10,6 @@ data class Company(
     val name: String,
     val email: String,
     val password: String,
-    val createdAt: Instant
+    val createdAt: Instant,
+    val profileURL: String? = null
 )

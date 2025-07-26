@@ -9,7 +9,7 @@
     <ImageView
         android:id="@+id/previewImage"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="wrap_content"
         android:layout_marginBottom="16dp"
         android:scaleType="centerCrop" />
 
@@ -22,28 +22,29 @@
             android:id="@+id/statusDelivery"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Delivery" />
+            android:buttonTint="@color/green_primary"
+            android:text="Delivery"
+            android:textColorHighlight="@color/green_primary"
+            android:textColorLink="@color/green_primary" />
 
         <RadioButton
             android:id="@+id/statusInTransit"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="In-Transit" />
+            android:buttonTint="@color/green_primary"
+            android:text="In-Transit"
+            android:textColorHighlight="@color/green_primary"
+            android:textColorLink="@color/green_primary" />
 
         <RadioButton
             android:id="@+id/statusUnexpected"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Unexpected Stop" />
+            android:buttonTint="@color/green_primary"
+            android:text="Unexpected Stop"
+            android:textColorHighlight="@color/green_primary"
+            android:textColorLink="@color/green_primary" />
     </RadioGroup>
-
-    <EditText
-        android:id="@+id/noteInput"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:hint="Optional note"
-        android:inputType="text" />
 
     <LinearLayout
         style="?android:attr/buttonBarStyle"

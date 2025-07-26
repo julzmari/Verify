@@ -25,6 +25,7 @@
         android:layout_height="0dp"
         android:layout_margin="10dp"
         android:layout_marginTop="50dp"
+        app:layout_constraintBottom_toTopOf="@+id/captureBtn"
         app:layout_constraintDimensionRatio="3:4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,47 +38,39 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
-        android:layout_marginTop="85dp"
-        android:layout_marginBottom="24dp"
         android:background="@drawable/cam_circle"
         android:contentDescription="Back"
         android:padding="12dp"
         android:src="@drawable/arrow_back"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/captureBtn"
         app:layout_constraintHorizontal_bias="0.466"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/previewView" />
+        app:layout_constraintTop_toTopOf="@+id/captureBtn" />
 
     <ImageView
         android:id="@+id/btnSwitchCam"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_margin="16dp"
-        android:layout_marginTop="85dp"
-        android:layout_marginBottom="24dp"
         android:background="@drawable/cam_circle"
         android:contentDescription="Switch Camera"
         android:padding="12dp"
         android:src="@drawable/switch_camera"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/captureBtn"
-        app:layout_constraintTop_toBottomOf="@+id/previewView" />
+        app:layout_constraintTop_toTopOf="@+id/captureBtn" />
 
     <FrameLayout
         android:id="@+id/captureBtn"
         android:layout_width="75dp"
         android:layout_height="75dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginBottom="50dp"
         android:clickable="true"
         android:elevation="10dp"
         android:focusable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/previewView">
+        app:layout_constraintStart_toStartOf="parent">
 
         <View
             android:layout_width="match_parent"
