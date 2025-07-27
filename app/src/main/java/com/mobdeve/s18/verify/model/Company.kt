@@ -11,5 +11,6 @@ data class Company(
     val email: String,
     val password: String,
     val createdAt: Instant,
-    val profileURL: String? = null
+    val profileURL: String? = null,
+    val isActive: Boolean
 )
