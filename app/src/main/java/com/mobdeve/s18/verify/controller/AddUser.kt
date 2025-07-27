@@ -133,7 +133,7 @@ class AddUser : BaseActivity() {
 
                     if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(this@AddUser, "Email is already registered.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@AddUser, "Unable to add user. Please try again.", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
                     }

@@ -157,7 +157,7 @@ class Register : AppCompatActivity() {
 
                 if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@Register, "Email is already registered.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@Register, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show()
                     }
                     Log.w("REGISTER_ATTEMPT", "Email already used: $email")
                     return@launch

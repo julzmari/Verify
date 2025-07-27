@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -38,13 +39,17 @@ class Settings : BaseActivity() {
         if (result.resultCode == Activity.RESULT_OK) {
             val selectedImageUri: Uri? = result.data?.data
             selectedImageUri?.let { uri ->
-                // Display
+                if (uri.scheme != "content" && uri.scheme != "file") {
+                    Toast.makeText(this, "Invalid image source", Toast.LENGTH_SHORT).show()
+                    Log.w("SECURITY_IMAGE", "Rejected image URI with unsupported scheme: ${uri.scheme}")
+                    return@let
+                }
+
                 Glide.with(this)
                     .load(uri)
                     .circleCrop()
                     .into(profileImageView)
 
-                // Store in DB
                 storeProfileUrl(uri.toString())
                 Toast.makeText(this, "Profile picture updated!", Toast.LENGTH_SHORT).show()
             }
@@ -62,9 +67,14 @@ class Settings : BaseActivity() {
         val app = applicationContext as VerifiApp
         currentUserId = app.employeeID
 
-        currentUserId?.let {
-            fetchUserDetails(it)
+        if (currentUserId.isNullOrEmpty()) {
+            Log.w("SECURITY_ACCESS", "Access attempt with null employee ID")
+            Toast.makeText(this, "Access denied. Please log in again.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
         }
+
+        fetchUserDetails(currentUserId!!)
 
         val changePic = findViewById<TextView>(R.id.changeProfile)
         val changePass = findViewById<TextView>(R.id.changePassword)
@@ -72,13 +82,8 @@ class Settings : BaseActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, R.id.nav_settings)
 
-        changePic.setOnClickListener {
-            checkAndRequestPermission()
-        }
-
-        changePass.setOnClickListener {
-            startActivity(Intent(this, ChangePassword::class.java))
-        }
+        changePic.setOnClickListener { checkAndRequestPermission() }
+        changePass.setOnClickListener { startActivity(Intent(this, ChangePassword::class.java)) }
 
         logout.setOnClickListener {
             app.companyID = null
@@ -108,16 +113,13 @@ class Settings : BaseActivity() {
                 val user = users.firstOrNull()
 
                 user?.let {
-                    // Update name
                     withContext(Dispatchers.Main) {
                         nameTextView.text = it.name
-                        // Load profile photo if exists
                         it.profileURL?.let { url ->
                             Glide.with(this@Settings).load(url).circleCrop().into(profileImageView)
                         }
                     }
 
-                    // Now fetch company name using companyID
                     val companyResult = supabase.postgrest
                         .from("companies")
                         .select {
@@ -133,11 +135,15 @@ class Settings : BaseActivity() {
                             companyNameTextView.text = comp.name
                         }
                     }
+
+                } ?: run {
+                    Log.w("FETCH_USER", "No user found for ID: $userId")
                 }
 
             } catch (e: Exception) {
+                Log.e("FETCH_USER_ERROR", "Exception during user/company fetch", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@Settings, "Failed to load user: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@Settings, "Something went wrong. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -155,8 +161,9 @@ class Settings : BaseActivity() {
                     eq("id", userId)
                 }
             } catch (e: Exception) {
+                Log.e("UPDATE_PROFILE_URL", "Failed to update profile URL", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@Settings, "Failed to store profile picture: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@Settings, "Failed to update profile picture. Try again later.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -186,6 +193,7 @@ class Settings : BaseActivity() {
         if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             openImagePicker()
         } else {
+            Log.w("PERMISSION_DENIED", "User denied image read permission")
             Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }

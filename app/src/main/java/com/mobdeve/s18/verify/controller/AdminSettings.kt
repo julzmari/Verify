@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -34,11 +35,16 @@ class AdminSettings : BaseActivity() {
     private lateinit var nameTextView: TextView
     private lateinit var emailTextView: TextView
     private var currentUserId: String? = null
-
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val selectedImageUri: Uri? = result.data?.data
             selectedImageUri?.let { uri ->
+                if (uri.scheme != "content" && uri.scheme != "file") {
+                    Toast.makeText(this, "Invalid image source", Toast.LENGTH_SHORT).show()
+                    Log.w("IMAGE_SECURITY", "Rejected URI with scheme: ${uri.scheme}")
+                    return@let
+                }
+
                 Glide.with(this)
                     .load(uri)
                     .circleCrop()
@@ -51,17 +57,18 @@ class AdminSettings : BaseActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_admin_settings)
-
         val app = applicationContext as VerifiApp
         val role = app.authorizedRole
 
         if (role != "admin" && role != "owner") {
-            Toast.makeText(this, "Access denied. Only admin or owner allowed.", Toast.LENGTH_SHORT).show()
+            Log.w("ACCESS_CONTROL", "Unauthorized role tried to access AdminSettings: $role")
+            Toast.makeText(this, "Access denied.", Toast.LENGTH_SHORT).show()
             finish()
             return
         }
+
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_admin_settings)
 
         profileImageView = findViewById(R.id.profilePic)
         nameTextView = findViewById(R.id.tvName)
@@ -114,7 +121,6 @@ class AdminSettings : BaseActivity() {
                         nameTextView.text = it.name
                         emailTextView.text = it.email
 
-                        // for longer emails, tap/click the email to view full email
                         emailTextView.setOnClickListener {
                             AlertDialog.Builder(this@AdminSettings)
                                 .setTitle("Company Email")
@@ -122,6 +128,7 @@ class AdminSettings : BaseActivity() {
                                 .setPositiveButton("OK", null)
                                 .show()
                         }
+
                         it.profileURL?.let { url ->
                             Glide.with(this@AdminSettings).load(url).circleCrop().into(profileImageView)
                         }
@@ -129,8 +136,9 @@ class AdminSettings : BaseActivity() {
                 }
 
             } catch (e: Exception) {
+                Log.e("FETCH_ERROR", "Company fetch error", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@AdminSettings, "Failed to load company: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AdminSettings, "Something went wrong. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -157,7 +165,6 @@ class AdminSettings : BaseActivity() {
                         nameTextView.text = it.name
                         emailTextView.text = it.email
 
-                        // for longer emails, tap/click the email to view full email
                         emailTextView.setOnClickListener {
                             AlertDialog.Builder(this@AdminSettings)
                                 .setTitle("Admin Email")
@@ -173,13 +180,13 @@ class AdminSettings : BaseActivity() {
                 }
 
             } catch (e: Exception) {
+                Log.e("FETCH_ERROR", "User fetch error", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@AdminSettings, "Failed to load user: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AdminSettings, "Something went wrong. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
     }
-
 
     private fun storeProfileUrl(url: String) {
         val supabase = (application as VerifiApp).supabase
@@ -204,8 +211,9 @@ class AdminSettings : BaseActivity() {
                     }
                 }
             } catch (e: Exception) {
+                Log.e("UPDATE_ERROR", "Profile URL update failed", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@AdminSettings, "Failed to update profile picture: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@AdminSettings, "Failed to update profile picture. Try again later.", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -235,8 +243,8 @@ class AdminSettings : BaseActivity() {
         if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             openImagePicker()
         } else {
+            Log.w("PERMISSION", "Storage permission denied by user.")
             Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }
 }
-
