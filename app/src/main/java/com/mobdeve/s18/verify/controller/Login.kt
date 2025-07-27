@@ -3,9 +3,11 @@ package com.mobdeve.s18.verify.controller
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import android.util.Patterns
 import android.widget.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.edit
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.textfield.MaterialAutoCompleteTextView
 import com.mobdeve.s18.verify.R
@@ -16,13 +18,9 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import android.widget.CheckBox 
-import android.widget.AutoCompleteTextView
-import android.widget.ArrayAdapter
-import android.widget.TextView
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.mindrot.jbcrypt.BCrypt
 
@@ -36,8 +34,6 @@ class Login : AppCompatActivity() {
     private lateinit var loginButton: Button
     private lateinit var rememberMeCheckBox: CheckBox
     private lateinit var forgotPasswordText: TextView
-
-
     private lateinit var rememberedAccounts: MutableList<RememberedAccount>
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -47,27 +43,25 @@ class Login : AppCompatActivity() {
         emailEditText = findViewById(R.id.login_txt_email_input)
         passwordEditText = findViewById(R.id.login_txt_pw_input)
         loginButton = findViewById(R.id.btn_login)
-        forgotPasswordText = findViewById<TextView>(R.id.login_text_forgotpw)
         rememberMeCheckBox = findViewById(R.id.login_checkBox)
+        forgotPasswordText = findViewById(R.id.login_text_forgotpw)
+
         rememberMeCheckBox.isChecked = false
 
-        // Load remembered accounts
         val sharedPrefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
         val savedJson = sharedPrefs.getString("rememberedAccounts", "[]")
-        val rememberedAccounts = Json.decodeFromString<List<RememberedAccount>>(savedJson ?: "[]")
+        rememberedAccounts = Json.decodeFromString<List<RememberedAccount>>(savedJson ?: "[]").toMutableList()
         val savedEmails = rememberedAccounts.map { it.email }
 
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, savedEmails)
-        (emailEditText as AutoCompleteTextView).setAdapter(adapter)
+        emailEditText.setAdapter(adapter)
 
-        (emailEditText as AutoCompleteTextView).setOnItemClickListener { _, _, position, _ ->
+        emailEditText.setOnItemClickListener { _, _, position, _ ->
             val selectedEmail = adapter.getItem(position)
             val matched = rememberedAccounts.find { it.email == selectedEmail }
             passwordEditText.setText(matched?.password ?: "")
         }
 
-        // type or select the account
-        // after selecting, long press the email field
         emailEditText.setOnLongClickListener {
             val selectedEmail = emailEditText.text.toString().trim()
             if (selectedEmail.isNotEmpty() && rememberedAccounts.any { it.email == selectedEmail }) {
@@ -89,31 +83,32 @@ class Login : AppCompatActivity() {
             startActivity(Intent(this, Register::class.java))
         }
 
-
-        //forgot password
-        val forgotPasswordText = findViewById<TextView>(R.id.login_text_forgotpw)
         forgotPasswordText.setOnClickListener {
             startActivity(Intent(this, ForgotPassword::class.java))
         }
-
 
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim().lowercase()
             val password = passwordEditText.text.toString()
 
-            if (email.isBlank() || password.isBlank()) {
-                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
-            } else {
-                if (rememberMeCheckBox.isChecked) {
-                    maybeUpdateRememberedAccount(email, password) {
-                        loginUser(email, password)
-                    }
-                } else {
+            if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || email.length > 100) {
+                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (password.length < 8 || password.length > 50) {
+                Toast.makeText(this, "Password must be 8 to 50 characters", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            if (rememberMeCheckBox.isChecked) {
+                maybeUpdateRememberedAccount(email, password) {
                     loginUser(email, password)
                 }
+            } else {
+                loginUser(email, password)
             }
         }
-
     }
 
     private fun loginUser(email: String, password: String) {
@@ -122,37 +117,62 @@ class Login : AppCompatActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // Try logging in as company
+                val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
+                val attemptKey = "attempts_$email"
+                val currentAttempts = prefs.getInt(attemptKey, 0)
+
                 val companyResult = supabase.postgrest
                     .from("companies")
-                    .select {
-                        eq("email", email)
-                        limit(1)
-                    }
+                    .select { eq("email", email); limit(1) }
 
                 val companies = json.decodeFromString<List<Company>>(companyResult.body.toString())
                 val company = companies.firstOrNull()
 
-                if (company != null && BCrypt.checkpw(password, company.password)) {
-                    val app = applicationContext as VerifiApp
-                    app.companyID = company.id
-                    app.authorizedRole = "owner"
-
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(this@Login, "Logged in as company owner", Toast.LENGTH_SHORT).show()
-                        startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
-                        finish()
+                if (company != null) {
+                    if (!company.isActive) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
+                        }
+                        return@launch
                     }
-                    return@launch
+
+                    if (BCrypt.checkpw(password, company.password)) {
+                        prefs.edit { remove(attemptKey) }
+                        val app = applicationContext as VerifiApp
+                        app.companyID = company.id
+                        app.authorizedRole = "owner"
+                        Log.i("LOGIN_ATTEMPT", "Company $email logged in")
+
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@Login, "Logged in as company owner", Toast.LENGTH_SHORT).show()
+                            startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
+                            finish()
+                        }
+                        return@launch
+                    } else {
+                        val newAttempts = currentAttempts + 1
+                        if (newAttempts >= 10) {
+                            supabase.postgrest.from("companies").update(mapOf("isActive" to false)) {
+                                eq("id", company.id)
+                            }
+                            prefs.edit { remove(attemptKey) }
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@Login, "Account is deactivated due to too many failed attempts.", Toast.LENGTH_SHORT).show()
+                            }
+                        } else {
+                            prefs.edit { putInt(attemptKey, newAttempts) }
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(this@Login, "Invalid email or password. Attempts left: ${5 - newAttempts}", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                        Log.w("LOGIN_ATTEMPT", "Invalid password for $email")
+                        return@launch
+                    }
                 }
 
-                // Try logging in as user
                 val userResult = supabase.postgrest
                     .from("users")
-                    .select {
-                        eq("email", email)
-                        limit(1)
-                    }
+                    .select { eq("email", email); limit(1) }
 
                 val users = json.decodeFromString<List<User>>(userResult.body.toString())
                 val user = users.firstOrNull()
@@ -165,12 +185,11 @@ class Login : AppCompatActivity() {
                         return@launch
                     }
 
-                    val prefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
-                    val attemptKey = "attempts_${user.email}"
-                    val currentAttempts = prefs.getInt(attemptKey, 0)
+                    val userAttemptKey = "attempts_${user.email}"
+                    val userAttempts = prefs.getInt(userAttemptKey, 0)
 
                     if (BCrypt.checkpw(password, user.password)) {
-                        prefs.edit().remove(attemptKey).apply()
+                        prefs.edit { remove(userAttemptKey) }
 
                         val app = applicationContext as VerifiApp
                         app.companyID = user.companyID
@@ -199,31 +218,25 @@ class Login : AppCompatActivity() {
                                 }
                             }
                         }
+                        Log.i("LOGIN_ATTEMPT", "User $email logged in as ${user.role}")
                         return@launch
                     } else {
-                        val newAttempts = currentAttempts + 1
-
+                        val newAttempts = userAttempts + 1
                         if (newAttempts >= 5) {
-                            supabase.postgrest.from("users").update(
-                                mapOf("isActive" to false)
-                            ) {
+                            supabase.postgrest.from("users").update(mapOf("isActive" to false)) {
                                 eq("id", user.id)
                             }
-                            prefs.edit().remove(attemptKey).apply()
-
+                            prefs.edit { remove(userAttemptKey) }
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@Login, "Account is deactivated due to too many failed attempts.", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            prefs.edit().putInt(attemptKey, newAttempts).apply()
+                            prefs.edit { putInt(userAttemptKey, newAttempts) }
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(
-                                    this@Login,
-                                    "Invalid email or password. Attempts left: ${5 - newAttempts}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast.makeText(this@Login, "Invalid email or password. Attempts left: ${5 - newAttempts}", Toast.LENGTH_SHORT).show()
                             }
                         }
+                        Log.w("LOGIN_ATTEMPT", "Invalid password for $email")
                         return@launch
                     }
                 }
@@ -233,9 +246,9 @@ class Login : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                Log.e("LOGIN_DEBUG", "Login error: ${e.message}")
+                Log.e("LOGIN_ERROR", "Login error occurred", e)
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@Login, "Login error: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@Login, "Login error. Please try again later.", Toast.LENGTH_LONG).show()
                 }
             }
         }
@@ -256,24 +269,25 @@ class Login : AppCompatActivity() {
                     .setMessage("Do you want to update the saved password?")
                     .setPositiveButton("Yes") { _, _ ->
                         accounts[existingIndex] = RememberedAccount(email, password)
-                        sharedPrefs.edit().putString("rememberedAccounts", Json.encodeToString(accounts)).apply()
+                        sharedPrefs.edit {
+                            putString("rememberedAccounts", Json.encodeToString(accounts))
+                        }
                         Toast.makeText(this, "Saved password updated.", Toast.LENGTH_SHORT).show()
                         onContinue()
                     }
-                    .setNegativeButton("No") { _, _ ->
-                        onContinue()
-                    }
+                    .setNegativeButton("No") { _, _ -> onContinue() }
                     .show()
             } else {
                 onContinue()
             }
         } else {
             accounts.add(RememberedAccount(email, password))
-            sharedPrefs.edit().putString("rememberedAccounts", Json.encodeToString(accounts)).apply()
+            sharedPrefs.edit {
+                putString("rememberedAccounts", Json.encodeToString(accounts))
+            }
             onContinue()
         }
     }
-    
 
     private fun removeRememberedAccount(email: String) {
         val sharedPrefs = getSharedPreferences("loginPrefs", MODE_PRIVATE)
@@ -281,17 +295,16 @@ class Login : AppCompatActivity() {
         val accounts = Json.decodeFromString<MutableList<RememberedAccount>>(savedJson ?: "[]")
 
         val updatedAccounts = accounts.filterNot { it.email == email }
-        sharedPrefs.edit().putString("rememberedAccounts", Json.encodeToString(updatedAccounts)).apply()
+        sharedPrefs.edit {
+            putString("rememberedAccounts", Json.encodeToString(updatedAccounts))
+        }
 
         Toast.makeText(this, "Removed remembered account: $email", Toast.LENGTH_SHORT).show()
 
-        // Update dropdown
         val updatedEmails = updatedAccounts.map { it.email }
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, updatedEmails)
-        (emailEditText as AutoCompleteTextView).setAdapter(adapter)
+        emailEditText.setAdapter(adapter)
 
-        // Also update the in-memory list
         rememberedAccounts = updatedAccounts.toMutableList()
     }
 }
-
