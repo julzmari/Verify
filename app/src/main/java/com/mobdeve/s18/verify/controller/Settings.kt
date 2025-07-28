@@ -89,6 +89,10 @@ class Settings : BaseActivity() {
             app.companyID = null
             app.employeeID = null
             app.authorizedRole = null
+            app.location = null
+            app.latitude = null
+            app.longitude = null
+            app.username = null
 
             val intent = Intent(this, Homepage::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
