@@ -7,6 +7,7 @@ plugins {
     id("kotlin-parcelize")
 }
 
+
 android {
     namespace = "com.mobdeve.s18.verify"
     compileSdk = 35
@@ -45,21 +46,25 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:gotrue-kt:1.4.2")
     implementation("io.github.jan-tennert.supabase:postgrest-kt:1.4.2")
     implementation("io.github.jan-tennert.supabase:storage-kt:1.4.2")
+
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+
     implementation("io.ktor:ktor-client-okhttp:2.3.7")
     implementation("org.mindrot:jbcrypt:0.4")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation(libs.play.services.maps)
     implementation(libs.androidx.material3.android)
+    //implementation(libs.androidx.ui.desktop)
     kapt("com.github.bumptech.glide:compiler:4.16.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation ("org.osmdroid:osmdroid-android:6.1.10")
     implementation(libs.material)
-    testImplementation(libs.junit)
+
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
-    androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+
 
     // CameraX
     implementation(libs.androidx.camera.core)

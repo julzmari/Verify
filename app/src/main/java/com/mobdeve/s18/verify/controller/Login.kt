@@ -90,14 +90,16 @@ class Login : AppCompatActivity() {
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim().lowercase()
             val password = passwordEditText.text.toString()
+            Log.d("LOGIN", "Trying email: $email")
+
 
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || email.length > 100) {
-                Toast.makeText(this, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Login, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (password.length < 8 || password.length > 50) {
-                Toast.makeText(this, "Password must be 8 to 50 characters", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Login, "Password must be 8 to 50 characters", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
@@ -107,6 +109,8 @@ class Login : AppCompatActivity() {
                 }
             } else {
                 loginUser(email, password)
+                Log.d("LOGIN", "Trying email: $email password: $password" )
+
             }
         }
     }
@@ -272,7 +276,7 @@ class Login : AppCompatActivity() {
                         sharedPrefs.edit {
                             putString("rememberedAccounts", Json.encodeToString(accounts))
                         }
-                        Toast.makeText(this, "Saved password updated.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@Login, "Saved password updated.", Toast.LENGTH_SHORT).show()
                         onContinue()
                     }
                     .setNegativeButton("No") { _, _ -> onContinue() }
@@ -299,7 +303,7 @@ class Login : AppCompatActivity() {
             putString("rememberedAccounts", Json.encodeToString(updatedAccounts))
         }
 
-        Toast.makeText(this, "Removed remembered account: $email", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this@Login, "Removed remembered account: $email", Toast.LENGTH_SHORT).show()
 
         val updatedEmails = updatedAccounts.map { it.email }
         val adapter = ArrayAdapter(this, android.R.layout.simple_dropdown_item_1line, updatedEmails)
