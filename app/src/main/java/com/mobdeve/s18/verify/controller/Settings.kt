@@ -27,6 +27,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 
 class Settings : BaseActivity() {
 
@@ -34,6 +37,8 @@ class Settings : BaseActivity() {
     private lateinit var nameTextView: TextView
     private lateinit var companyNameTextView: TextView
     private var currentUserId: String? = null
+    private lateinit var lastLoginTxt: TextView
+    private lateinit var lastFailedLoginTxt: TextView
 
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
@@ -98,6 +103,8 @@ class Settings : BaseActivity() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
         }
+        lastLoginTxt = findViewById(R.id.latest_login_txt)
+        lastFailedLoginTxt = findViewById(R.id.latest__failed_login_txt)
     }
 
     private fun fetchUserDetails(userId: String) {
@@ -139,6 +146,12 @@ class Settings : BaseActivity() {
                             companyNameTextView.text = comp.name
                         }
                     }
+                    val lastLoginStr = it.last_login?.toString()
+                    val lastFailedLoginStr = it.last_failed_login?.toString()
+
+                    lastLoginTxt.text = "Last Login: ${formatTimestampRaw(lastLoginStr)}"
+                    lastFailedLoginTxt.text = "Last Failed Login: ${formatTimestampRaw(lastFailedLoginStr)}"
+
 
                 } ?: run {
                     Log.w("FETCH_USER", "No user found for ID: $userId")
@@ -150,6 +163,24 @@ class Settings : BaseActivity() {
                     Toast.makeText(this@Settings, "Something went wrong. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    private fun formatTimestampRaw(raw: String?): String {
+        if (raw == null) return "None"
+
+        return try {
+            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX", Locale.getDefault())
+            inputFormat.timeZone = TimeZone.getTimeZone("UTC") // adjust if needed
+
+            val date = inputFormat.parse(raw)
+
+            val outputFormat = SimpleDateFormat("MMM dd, yyyy hh:mm a", Locale.getDefault())
+            outputFormat.timeZone = TimeZone.getTimeZone("Asia/Manila")
+
+            outputFormat.format(date ?: return "Invalid")
+        } catch (e: Exception) {
+            "Invalid"
         }
     }
 

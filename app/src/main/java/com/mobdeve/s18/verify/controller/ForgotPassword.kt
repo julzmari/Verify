@@ -28,8 +28,6 @@ class ForgotPassword : AppCompatActivity() {
         supabaseUrl = app.supabase.supabaseUrl
         anonKey = app.supabase.supabaseKey
 
-        Log.d("FORGOT", "Supabase URL: $supabaseUrl")
-        Log.d("FORGOT", "Supabase Key: $anonKey")
 
 
 
@@ -54,7 +52,6 @@ class ForgotPassword : AppCompatActivity() {
         """.trimIndent()
         val sanitizedUrl = if (supabaseUrl.startsWith("http")) supabaseUrl else "https://$supabaseUrl"
         val endpoint = "$sanitizedUrl/functions/v1/request-password-reset"
-        Log.d("FORGOT", "Supabase URL: $endpoint")
 
 
         val requestBody = json.toRequestBody("application/json".toMediaType())
@@ -65,7 +62,6 @@ class ForgotPassword : AppCompatActivity() {
             .post(requestBody)
             .build()
 
-        Log.d("FORGOT Final", "Supabase URL: $request")
 
 
         client.newCall(request).enqueue(object : Callback {
@@ -77,7 +73,6 @@ class ForgotPassword : AppCompatActivity() {
 
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string()
-                Log.d("FORGOT", "Status: ${response.code}, Body: $body")
 
                 runOnUiThread {
                     if (response.isSuccessful) {

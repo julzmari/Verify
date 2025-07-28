@@ -194,7 +194,6 @@ class ResetPasswordActivity : AppCompatActivity() {
                     eq("id", id)
                 }
 
-            Log.d("ResetPassword", "Response: $response")
 
             withContext(Dispatchers.Main) {
                 Toast.makeText(

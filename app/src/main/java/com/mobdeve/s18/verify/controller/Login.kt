@@ -145,6 +145,12 @@ class Login : AppCompatActivity() {
                     }
 
                     if (BCrypt.checkpw(password, company.password)) {
+                        supabase.postgrest.from("companies").update(
+                            mapOf("last_login" to kotlinx.datetime.Clock.System.now().toString())
+                        ) {
+                            eq("id", company.id)
+                        }
+
                         prefs.edit().remove(attemptKey).apply()
 
                         val app = applicationContext as VerifiApp
@@ -156,8 +162,15 @@ class Login : AppCompatActivity() {
                             startActivity(Intent(this@Login, AdminDashboardActivity::class.java))
                             finish()
                         }
+
                         return@launch
                     } else {
+                        supabase.postgrest.from("companies").update(
+                            mapOf("last_failed_login" to kotlinx.datetime.Clock.System.now().toString())
+                        ) {
+                            eq("id", company.id)
+                        }
+
                         val newAttempts = currentAttempts + 1
 
                         if (newAttempts >= 5) {
@@ -208,6 +221,12 @@ class Login : AppCompatActivity() {
                     val currentUserAttempts = prefs.getInt(userAttemptKey, 0)
 
                     if (BCrypt.checkpw(password, user.password)) {
+                        supabase.postgrest.from("users").update(
+                            mapOf("last_login" to kotlinx.datetime.Clock.System.now().toString())
+                        ) {
+                            eq("id", user.id)
+                        }
+
                         prefs.edit().remove(userAttemptKey).apply()
 
                         val app = applicationContext as VerifiApp
@@ -240,6 +259,12 @@ class Login : AppCompatActivity() {
                         return@launch
                     } else {
                         val newAttempts = currentUserAttempts + 1
+
+                        supabase.postgrest.from("users").update(
+                            mapOf("last_failed_login" to kotlinx.datetime.Clock.System.now().toString())
+                        ) {
+                            eq("id", user.id)
+                        }
 
                         if (newAttempts >= 5) {
                             supabase.postgrest.from("users").update(
