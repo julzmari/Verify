@@ -2,6 +2,7 @@ package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -27,6 +28,11 @@ class ForgotPassword : AppCompatActivity() {
         supabaseUrl = app.supabase.supabaseUrl
         anonKey = app.supabase.supabaseKey
 
+        Log.d("FORGOT", "Supabase URL: $supabaseUrl")
+        Log.d("FORGOT", "Supabase Key: $anonKey")
+
+
+
         val emailInput = findViewById<EditText>(R.id.forgot_txt_email_input)
         val sendButton = findViewById<Button>(R.id.btn_submit_reset)
 
@@ -46,15 +52,21 @@ class ForgotPassword : AppCompatActivity() {
                 "email": "$email"
             }
         """.trimIndent()
+        val sanitizedUrl = if (supabaseUrl.startsWith("http")) supabaseUrl else "https://$supabaseUrl"
+        val endpoint = "$sanitizedUrl/functions/v1/request-password-reset"
+        Log.d("FORGOT", "Supabase URL: $endpoint")
+
 
         val requestBody = json.toRequestBody("application/json".toMediaType())
         val request = Request.Builder()
-            .url("$supabaseUrl/functions/v1/request-password-reset")
-            .addHeader("apikey", anonKey)
-            .addHeader("Authorization", "Bearer $anonKey")
+            .url(endpoint)
             .addHeader("Content-Type", "application/json")
+            .addHeader("Authorization", "Bearer $anonKey")
             .post(requestBody)
             .build()
+
+        Log.d("FORGOT Final", "Supabase URL: $request")
+
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
@@ -64,6 +76,9 @@ class ForgotPassword : AppCompatActivity() {
             }
 
             override fun onResponse(call: Call, response: Response) {
+                val body = response.body?.string()
+                Log.d("FORGOT", "Status: ${response.code}, Body: $body")
+
                 runOnUiThread {
                     if (response.isSuccessful) {
                         Toast.makeText(this@ForgotPassword, "Code sent if email exists.", Toast.LENGTH_LONG).show()

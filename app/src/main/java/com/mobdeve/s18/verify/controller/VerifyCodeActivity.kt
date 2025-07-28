@@ -16,13 +16,9 @@ import java.io.IOException
 
 class VerifyCodeActivity : AppCompatActivity() {
 
-    private lateinit var codeInput: EditText
-    private lateinit var verifyButton: Button
     private val client = OkHttpClient()
-
     private lateinit var supabaseUrl: String
     private lateinit var anonKey: String
-    private lateinit var email: String  // coming from intent
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,23 +28,21 @@ class VerifyCodeActivity : AppCompatActivity() {
         supabaseUrl = app.supabase.supabaseUrl
         anonKey = app.supabase.supabaseKey
 
-        codeInput = findViewById(R.id.editTextVerificationCode)
-        verifyButton = findViewById(R.id.buttonVerifyCode)
-
-        // Get email from intent
-        email = intent.getStringExtra("email") ?: ""
+        val email = intent.getStringExtra("email") ?: ""
+        val codeInput = findViewById<EditText>(R.id.editTextVerificationCode)
+        val verifyButton = findViewById<Button>(R.id.buttonVerifyCode)
 
         verifyButton.setOnClickListener {
             val code = codeInput.text.toString().trim()
-            if (email.isNotEmpty() && code.isNotEmpty()) {
-                verifyCode(email, code)
+            if (code.isNotEmpty()) {
+                verifyResetCode(email, code)
             } else {
-                Toast.makeText(this, "Please enter the verification code.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter the code.", Toast.LENGTH_SHORT).show()
             }
         }
     }
 
-    private fun verifyCode(email: String, code: String) {
+    private fun verifyResetCode(email: String, code: String) {
         val json = """
             {
                 "email": "$email",
@@ -56,33 +50,35 @@ class VerifyCodeActivity : AppCompatActivity() {
             }
         """.trimIndent()
 
+        val sanitizedUrl = if (supabaseUrl.startsWith("http")) supabaseUrl else "https://$supabaseUrl"
+        val endpoint = "$sanitizedUrl/functions/v1/verify_code"
+        val requestBody = json.toRequestBody("application/json".toMediaType())
         val request = Request.Builder()
-            .url("$supabaseUrl/functions/v1/verify-reset-token")
-            .addHeader("apikey", anonKey)
+            .url(endpoint)
+            .addHeader("Content-Type", "application/json")
             .addHeader("Authorization", "Bearer $anonKey")
-            .post(json.toRequestBody("application/json".toMediaType()))
+            .post(requestBody)
             .build()
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@VerifyCodeActivity, "Network error: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@VerifyCodeActivity, "Network error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
 
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string()
+                Log.d("VERIFY", "Status: ${response.code}, Body: $body")
+
                 runOnUiThread {
                     if (response.isSuccessful) {
-                        // Move to password reset screen
                         val intent = Intent(this@VerifyCodeActivity, ResetPasswordActivity::class.java)
                         intent.putExtra("email", email)
-                        intent.putExtra("token", code) // Pass token for backend verification
+                        intent.putExtra("token", code) // optional
                         startActivity(intent)
-                        finish()
                     } else {
-                        Log.e("VerifyCode", "Verification failed: $body")
-                        Toast.makeText(this@VerifyCodeActivity, "Invalid or expired code", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@VerifyCodeActivity, "Invalid or expired code.", Toast.LENGTH_SHORT).show()
                     }
                 }
             }
