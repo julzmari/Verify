@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -11,6 +12,7 @@ import androidx.lifecycle.lifecycleScope
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.Company
+import com.mobdeve.s18.verify.model.CompanyUpdatePayload
 import com.mobdeve.s18.verify.model.User
 import com.nulabinc.zxcvbn.Zxcvbn
 import io.github.jan.supabase.postgrest.postgrest
@@ -103,7 +105,7 @@ class ResetPasswordActivity : AppCompatActivity() {
                             return@launch
                         }
 
-                        updatePassword("companies", company.id, newPass)
+                        updateCompanyPasswordAndActivate(company.id, newPass)
                         val intent = Intent(this@ResetPasswordActivity, Login::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
@@ -133,13 +135,7 @@ class ResetPasswordActivity : AppCompatActivity() {
                             return@launch
 
                         }
-
-
                     }
-
-
-
-
 
                     withContext(Dispatchers.Main) {
                         Toast.makeText(
@@ -179,7 +175,48 @@ class ResetPasswordActivity : AppCompatActivity() {
             ).show()
             finish()
         }
+
+
     }
+
+    private suspend fun updateCompanyPasswordAndActivate(id: String, newPassword: String) {
+        val supabase = app.supabase
+        val hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+
+        try {
+
+            val updatePayload = CompanyUpdatePayload(
+                password = hashed,
+                isActive = true
+            )
+            val response = supabase.postgrest["companies"]
+                .update(updatePayload) {
+                    eq("id", id)
+                }
+
+            Log.d("ResetPassword", "Response: $response")
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@ResetPasswordActivity,
+                    "Password changed successfully.",
+                    Toast.LENGTH_SHORT
+                ).show()
+                finish()
+            }
+        } catch (e: Exception) {
+            Log.e("ResetPassword", "Update failed", e)
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@ResetPasswordActivity,
+                    "Error updating password.",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+
 
 
     private fun updatePasswordStrength(password: String) {
