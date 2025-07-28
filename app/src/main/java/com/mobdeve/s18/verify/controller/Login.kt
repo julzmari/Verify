@@ -125,9 +125,13 @@ class Login : AppCompatActivity() {
                 val attemptKey = "attempts_$email"
                 val currentAttempts = prefs.getInt(attemptKey, 0)
 
+                // Try logging in as company
                 val companyResult = supabase.postgrest
                     .from("companies")
-                    .select { eq("email", email); limit(1) }
+                    .select {
+                        eq("email", email)
+                        limit(1)
+                    }
 
                 val companies = json.decodeFromString<List<Company>>(companyResult.body.toString())
                 val company = companies.firstOrNull()
@@ -135,17 +139,17 @@ class Login : AppCompatActivity() {
                 if (company != null) {
                     if (!company.isActive) {
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(this@Login, "Company account is deactivated", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
                     }
 
                     if (BCrypt.checkpw(password, company.password)) {
-                        prefs.edit { remove(attemptKey) }
+                        prefs.edit().remove(attemptKey).apply()
+
                         val app = applicationContext as VerifiApp
                         app.companyID = company.id
                         app.authorizedRole = "owner"
-                        Log.i("LOGIN_ATTEMPT", "Company $email logged in")
 
                         withContext(Dispatchers.Main) {
                             Toast.makeText(this@Login, "Logged in as company owner", Toast.LENGTH_SHORT).show()
@@ -155,28 +159,39 @@ class Login : AppCompatActivity() {
                         return@launch
                     } else {
                         val newAttempts = currentAttempts + 1
-                        if (newAttempts >= 10) {
-                            supabase.postgrest.from("companies").update(mapOf("isActive" to false)) {
+
+                        if (newAttempts >= 5) {
+                            supabase.postgrest.from("companies").update(
+                                mapOf("isActive" to false)
+                            ) {
                                 eq("id", company.id)
                             }
-                            prefs.edit { remove(attemptKey) }
+                            prefs.edit().remove(attemptKey).apply()
+
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Account is deactivated due to too many failed attempts.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@Login, "Company account is deactivated", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            prefs.edit { putInt(attemptKey, newAttempts) }
+                            prefs.edit().putInt(attemptKey, newAttempts).apply()
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Invalid email or password. Attempts left: ${5 - newAttempts}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    this@Login,
+                                    "Invalid email or password. Attempts left: ${5 - newAttempts}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
-                        Log.w("LOGIN_ATTEMPT", "Invalid password for $email")
                         return@launch
                     }
                 }
 
+                // Try logging in as user
                 val userResult = supabase.postgrest
                     .from("users")
-                    .select { eq("email", email); limit(1) }
+                    .select {
+                        eq("email", email)
+                        limit(1)
+                    }
 
                 val users = json.decodeFromString<List<User>>(userResult.body.toString())
                 val user = users.firstOrNull()
@@ -190,10 +205,10 @@ class Login : AppCompatActivity() {
                     }
 
                     val userAttemptKey = "attempts_${user.email}"
-                    val userAttempts = prefs.getInt(userAttemptKey, 0)
+                    val currentUserAttempts = prefs.getInt(userAttemptKey, 0)
 
                     if (BCrypt.checkpw(password, user.password)) {
-                        prefs.edit { remove(userAttemptKey) }
+                        prefs.edit().remove(userAttemptKey).apply()
 
                         val app = applicationContext as VerifiApp
                         app.companyID = user.companyID
@@ -222,25 +237,31 @@ class Login : AppCompatActivity() {
                                 }
                             }
                         }
-                        Log.i("LOGIN_ATTEMPT", "User $email logged in as ${user.role}")
                         return@launch
                     } else {
-                        val newAttempts = userAttempts + 1
+                        val newAttempts = currentUserAttempts + 1
+
                         if (newAttempts >= 5) {
-                            supabase.postgrest.from("users").update(mapOf("isActive" to false)) {
+                            supabase.postgrest.from("users").update(
+                                mapOf("isActive" to false)
+                            ) {
                                 eq("id", user.id)
                             }
-                            prefs.edit { remove(userAttemptKey) }
+                            prefs.edit().remove(userAttemptKey).apply()
+
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Account is deactivated due to too many failed attempts.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            prefs.edit { putInt(userAttemptKey, newAttempts) }
+                            prefs.edit().putInt(userAttemptKey, newAttempts).apply()
                             withContext(Dispatchers.Main) {
-                                Toast.makeText(this@Login, "Invalid email or password. Attempts left: ${5 - newAttempts}", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    this@Login,
+                                    "Invalid email or password. Attempts left: ${5 - newAttempts}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
-                        Log.w("LOGIN_ATTEMPT", "Invalid password for $email")
                         return@launch
                     }
                 }
@@ -250,9 +271,9 @@ class Login : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                Log.e("LOGIN_ERROR", "Login error occurred", e)
+                Log.e("LOGIN_DEBUG", "Login error: ${e.message}")
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@Login, "Login error. Please try again later.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@Login, "Login error: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
         }
