@@ -69,7 +69,8 @@ class AdminSettings : BaseActivity() {
 
         if (role != "admin" && role != "owner") {
             Log.w("ACCESS_CONTROL", "Unauthorized role tried to access AdminSettings: $role")
-            Toast.makeText(this, "Access denied.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Access denied. Redirecting to homepage...", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(this, Homepage::class.java))
             finish()
             return
         }
@@ -253,6 +254,8 @@ class AdminSettings : BaseActivity() {
                         eq("id", employeeId)
                     }
                 }
+
+                Log.i("PROFILE_UPDATE", "Profile image successfully updated for role: $role")
             } catch (e: Exception) {
                 Log.e("UPDATE_ERROR", "Profile URL update failed", e)
                 withContext(Dispatchers.Main) {
