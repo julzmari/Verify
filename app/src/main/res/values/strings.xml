@@ -13,6 +13,7 @@
     <string name="forgot_password">Forgot Password</string>
     <string name="don_t_have_an_account_register">Don\'t have an account? Register</string>
     <string name="recent_entries">Recent Entries</string>
+    <string name="password_requirements">Password must be 8-50 characters, with an uppercase letter, lowercase letter, number, and special character.</string>
     <string-array name="user_roles">
         <item>Admin</item>
         <item>Worker</item>

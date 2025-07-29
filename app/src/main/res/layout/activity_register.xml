@@ -118,7 +118,7 @@
             android:id="@+id/register_txt_pw2_lo"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="20dp">
+            android:layout_marginBottom="8dp">
 
             <EditText
                 android:id="@+id/register_txt_pw2_input"
@@ -131,6 +131,17 @@
                 android:inputType="textPassword"
                 android:textColorHint="#5C040404" />
         </com.google.android.material.textfield.TextInputLayout>
+
+        <TextView
+            android:id="@+id/password_requirements"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="4dp"
+            android:layout_marginBottom="4dp"
+            android:background="#01FFFFFF"
+            android:text="@string/password_requirements"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp" />
 
         <Button
             android:id="@+id/button"
