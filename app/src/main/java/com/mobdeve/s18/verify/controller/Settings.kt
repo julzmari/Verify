@@ -126,10 +126,19 @@ class Settings : BaseActivity() {
                 user?.let {
                     withContext(Dispatchers.Main) {
                         nameTextView.text = it.name
-                        it.profileURL?.let { url ->
-                            Glide.with(this@Settings).load(url).circleCrop().into(profileImageView)
+                        if (!it.profileURL.isNullOrBlank()) {
+                            Glide.with(this@Settings)
+                                .load(it.profileURL)
+                                .circleCrop()
+                                .into(profileImageView)
+                        } else {
+                            Glide.with(this@Settings)
+                                .load(R.drawable.user)
+                                .circleCrop()
+                                .into(profileImageView)
                         }
                     }
+
 
                     val companyResult = supabase.postgrest
                         .from("companies")

@@ -141,7 +141,20 @@ class AdminSettings : BaseActivity() {
                         }
 
                         it.profileURL?.let { url ->
-                            Glide.with(this@AdminSettings).load(url).circleCrop().into(profileImageView)
+                            withContext(Dispatchers.Main) {
+                                nameTextView.text = it.name
+                                if (!it.profileURL.isNullOrBlank()) {
+                                    Glide.with(this@AdminSettings)
+                                        .load(it.profileURL)
+                                        .circleCrop()
+                                        .into(profileImageView)
+                                } else {
+                                    Glide.with(this@AdminSettings)
+                                        .load(R.drawable.user)
+                                        .circleCrop()
+                                        .into(profileImageView)
+                                }
+                            }
                         }
 
                         val lastLoginStr = it.last_login?.toString()
@@ -211,7 +224,20 @@ class AdminSettings : BaseActivity() {
                         }
 
                         it.profileURL?.let { url ->
-                            Glide.with(this@AdminSettings).load(url).circleCrop().into(profileImageView)
+                            withContext(Dispatchers.Main) {
+                                nameTextView.text = it.name
+                                if (!it.profileURL.isNullOrBlank()) {
+                                    Glide.with(this@AdminSettings)
+                                        .load(it.profileURL)
+                                        .circleCrop()
+                                        .into(profileImageView)
+                                } else {
+                                    Glide.with(this@AdminSettings)
+                                        .load(R.drawable.user)
+                                        .circleCrop()
+                                        .into(profileImageView)
+                                }
+                            }
                         }
 
                         val lastLoginStr = it.last_login?.toString()
