@@ -12,8 +12,9 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="#FFFFFF"
-        android:hint="Enter verification code"
-        android:inputType="text"
+        android:hint="Enter 6-digit verification code"
+        android:inputType="number"
+        android:maxLength="6"
         android:textColor="#FFFFFF"
         android:textColorHint="#FFFFFF" />
 

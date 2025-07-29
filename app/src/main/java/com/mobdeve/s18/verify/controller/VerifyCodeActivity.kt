@@ -34,10 +34,10 @@ class VerifyCodeActivity : AppCompatActivity() {
 
         verifyButton.setOnClickListener {
             val code = codeInput.text.toString().trim()
-            if (code.isNotEmpty()) {
+            if (code.matches(Regex("^\\d{6}$"))) {
                 verifyResetCode(email, code)
             } else {
-                Toast.makeText(this, "Please enter the code.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Please enter a valid 6-digit code.", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -79,6 +79,9 @@ class VerifyCodeActivity : AppCompatActivity() {
                         startActivity(intent)
                     } else {
                         Toast.makeText(this@VerifyCodeActivity, "Invalid or expired code.", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this@VerifyCodeActivity, ForgotPassword::class.java)
+                        startActivity(intent)
+                        finish()
                     }
                 }
             }

@@ -75,16 +75,16 @@ class ForgotPassword : AppCompatActivity() {
                 val body = response.body?.string()
 
                 runOnUiThread {
-                    if (response.isSuccessful) {
+                    if (response.code >= 500) {
+                        Toast.makeText(this@ForgotPassword, "Server error. Please try again later.", Toast.LENGTH_SHORT).show()
+                    } else {
                         Toast.makeText(this@ForgotPassword, "Code sent if email exists.", Toast.LENGTH_LONG).show()
-
                         val intent = Intent(this@ForgotPassword, VerifyCodeActivity::class.java)
                         intent.putExtra("email", email)
                         startActivity(intent)
-                    } else {
-                        Toast.makeText(this@ForgotPassword, "Failed to send code.", Toast.LENGTH_SHORT).show()
                     }
                 }
+
             }
 
         })
