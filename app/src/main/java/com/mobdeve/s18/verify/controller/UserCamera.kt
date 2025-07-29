@@ -196,22 +196,23 @@ class UserCamera : AppCompatActivity() {
                     image_url = imageUrl,
                     status = status,
                     location_name = location.toString(),
-                    latitude = latitude?.toDouble() ?: 1.0,
-                    longitude = longitude?.toDouble() ?: 1.0,
+                    latitude = latitude ?: 1.0,
+                    longitude = longitude ?: 1.0,
                     datetime = currentTime,
                 )
 
                 // Insert the photo entry into the database
-                val response = supabase.postgrest["photos"]
-                    .insert(newPhoto)
+                 supabase.postgrest["photos"].insert(newPhoto)
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@UserCamera, "Photo submitted successfully", Toast.LENGTH_SHORT).show()
+                    setResult(RESULT_OK)
                     finish() // Close the camera activity after submission
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@UserCamera, "Error submitting photo: ${e.message}", Toast.LENGTH_SHORT).show()
+                    finish()
                 }
             }
         }

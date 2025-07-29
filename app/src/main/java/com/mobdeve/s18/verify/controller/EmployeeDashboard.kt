@@ -11,6 +11,7 @@ import android.util.Log
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -46,6 +47,9 @@ class EmployeeDashboard : BaseActivity() {
         }
     }
 
+    private lateinit var cameraLauncher: ActivityResultLauncher<Intent>
+
+
     @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,11 +63,18 @@ class EmployeeDashboard : BaseActivity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationPermissionRequest.launch(Manifest.permission.ACCESS_FINE_LOCATION)
 
+        cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (it.resultCode == RESULT_OK) {
+                fetchUserData() // refresh dashboard if submission succeeded
+            }
+        }
+
         fetchUserData()
 
         captureButton = findViewById(R.id.captureBtnDashboard)
         captureButton.setOnClickListener {
-            startActivity(Intent(this, UserCamera::class.java))
+            val intent = Intent(this, UserCamera::class.java)
+            cameraLauncher.launch(intent)
         }
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
