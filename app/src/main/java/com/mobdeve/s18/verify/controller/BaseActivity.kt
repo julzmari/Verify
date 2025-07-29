@@ -21,13 +21,18 @@ open class BaseActivity : AppCompatActivity() {
     protected fun setupBottomNavigation(bottomNav: BottomNavigationView, currentItemId: Int) {
         bottomNav.selectedItemId = currentItemId
         bottomNav.setOnItemSelectedListener {
+            if (role == null) {
+                // Fail securely: do nothing if role is undefined
+                return@setOnItemSelectedListener false
+            }
+
             when (it.itemId) {
                 R.id.nav_home -> {
                     if (currentItemId != R.id.nav_home) {
-                        val intent = if (role == "worker") {
-                            Intent(this, EmployeeDashboard::class.java)
-                        } else {
-                            Intent(this, AdminDashboardActivity::class.java)
+                        val intent = when (role) {
+                            "worker" -> Intent(this, EmployeeDashboard::class.java)
+                            "admin", "owner" -> Intent(this, AdminDashboardActivity::class.java)
+                            else -> return@setOnItemSelectedListener false // fail secure
                         }
                         startActivity(intent)
                     }
@@ -36,27 +41,32 @@ open class BaseActivity : AppCompatActivity() {
 
                 R.id.nav_history -> {
                     if (currentItemId != R.id.nav_history) {
-                        val intent = Intent(this, SubmissionHistory::class.java)
-                        intent.putExtra("role", role)
-                        startActivity(intent)
+                        if (role in listOf("worker", "admin", "owner")) {
+                            val intent = Intent(this, SubmissionHistory::class.java)
+                            intent.putExtra("role", role)
+                            startActivity(intent)
+                        } else {
+                            return@setOnItemSelectedListener false
+                        }
                     }
                     true
                 }
 
-
                 R.id.nav_users -> {
-                    if (role != "worker" ) {
+                    if (role != "worker") {
                         startActivity(Intent(this, ManageUser::class.java))
+                    } else {
+                        return@setOnItemSelectedListener false
                     }
                     true
                 }
 
                 R.id.nav_settings -> {
                     if (currentItemId != R.id.nav_settings) {
-                        val intent = if (role == "worker") {
-                            Intent(this, Settings::class.java)
-                        } else {
-                            Intent(this, AdminSettings::class.java)
+                        val intent = when (role) {
+                            "worker" -> Intent(this, Settings::class.java)
+                            "admin", "owner" -> Intent(this, AdminSettings::class.java)
+                            else -> return@setOnItemSelectedListener false
                         }
                         startActivity(intent)
                     }

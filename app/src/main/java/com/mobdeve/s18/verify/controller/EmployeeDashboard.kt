@@ -10,11 +10,12 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.User
@@ -60,13 +61,11 @@ class EmployeeDashboard : BaseActivity() {
 
         fetchUserData()
 
-        captureButton = findViewById<Button>(R.id.captureBtnDashboard)
-
+        captureButton = findViewById(R.id.captureBtnDashboard)
         captureButton.setOnClickListener {
-            val intent = Intent(this, UserCamera::class.java)
-            startActivity(intent)
+            startActivity(Intent(this, UserCamera::class.java))
         }
-        
+
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav)
         setupBottomNavigation(bottomNav, R.id.nav_home)
     }
@@ -79,9 +78,17 @@ class EmployeeDashboard : BaseActivity() {
                 val supabase = app.supabase
                 val employeeID = app.employeeID
 
+                if (employeeID.isNullOrEmpty()) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@EmployeeDashboard, "Unauthorized access. Please login again.", Toast.LENGTH_SHORT).show()
+                        startActivity(Intent(this@EmployeeDashboard, Login::class.java))
+                        finish()
+                    }
+                    return@launch
+                }
+
                 val userResponse = supabase.postgrest["users?id=eq.$employeeID"].select()
                 val user = userResponse.decodeList<User>().firstOrNull()
-
                 app.username = user?.name
 
                 val today = LocalDate.now(ZoneOffset.UTC)
@@ -100,22 +107,33 @@ class EmployeeDashboard : BaseActivity() {
 
             } catch (e: Exception) {
                 Log.e("Supabase", "Error fetching user/submissions: ${e.message}")
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@EmployeeDashboard, "An error occurred while fetching your data.", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
 
     @SuppressLint("MissingPermission")
     private fun getCurrentLocation() {
+        val app = applicationContext as VerifiApp
+
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
+                    if (location.latitude !in -90.0..90.0 || location.longitude !in -180.0..180.0) {
+                        Log.e("Location", "Invalid coordinates")
+                        return@addOnSuccessListener
+                    }
 
                     val geocoder = Geocoder(this)
                     try {
                         val addressList = geocoder.getFromLocation(location.latitude, location.longitude, 1)
                         val locationName = addressList?.firstOrNull()?.getAddressLine(0) ?: "Unknown location"
-                        currentLocation.text = locationName
-                        app.location = locationName
+
+                        val safeLocationName = locationName.take(150)
+                        currentLocation.text = safeLocationName
+                        app.location = safeLocationName
                     } catch (e: Exception) {
                         Log.e("Location", "Geocoder error: ${e.message}")
                         currentLocation.text = "Unable to fetch location"
@@ -123,7 +141,6 @@ class EmployeeDashboard : BaseActivity() {
 
                     app.longitude = location.longitude
                     app.latitude = location.latitude
-
                 } else {
                     Log.e("Location", "Location is null")
                 }
