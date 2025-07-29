@@ -14,6 +14,7 @@ import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.Company
 import com.mobdeve.s18.verify.model.CompanyUpdatePayload
 import com.mobdeve.s18.verify.model.User
+import com.mobdeve.s18.verify.repository.insertPasswordHistoryWithRetry
 import com.nulabinc.zxcvbn.Zxcvbn
 import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.*
@@ -60,165 +61,163 @@ class ResetPasswordActivity : AppCompatActivity() {
         })
 
         submitButton.setOnClickListener {
-            val newPass = newPassword.text.toString()
-            val confirmPass = confirmPassword.text.toString()
+            val new = newPassword.text.toString()
+            val confirm = confirmPassword.text.toString()
 
-            if (newPass.isBlank() || confirmPass.isBlank()) {
+            if (new.isBlank() || confirm.isBlank()) {
                 Toast.makeText(this, "Please complete all fields.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            if (newPass != confirmPass) {
-                Toast.makeText(
-                    this@ResetPasswordActivity,
-                    "Passwords do not match.",
-                    Toast.LENGTH_SHORT
-                ).show()
+            if (new != confirm) {
+                Toast.makeText(this, "Passwords do not match.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val error = getPasswordStrengthError(newPass)
-            if (error != null) {
-                Toast.makeText(this@ResetPasswordActivity, error, Toast.LENGTH_SHORT).show()
+            val pwError = getPasswordStrengthError(new)
+            if (pwError != null) {
+                Toast.makeText(this, pwError, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             lifecycleScope.launch {
+                val email = intent.getStringExtra("email") ?: return@launch
                 val supabase = app.supabase
                 val json = Json { ignoreUnknownKeys = true }
-                val email = intent.getStringExtra("email") ?: return@launch
 
                 try {
-
-                    val companyResult = supabase.postgrest
-                        .from("companies")
+                    // 1️⃣ Check company first
+                    val company = supabase.postgrest["companies"]
                         .select { eq("email", email); limit(1) }
-                    val companies =
-                        json.decodeFromString<List<Company>>(companyResult.body.toString())
-                    val company = companies.firstOrNull()
+                        .decodeList<Company>()
+                        .firstOrNull()
 
                     if (company != null) {
-
-
-                        if (BCrypt.checkpw(newPass, company.password)) {
+                        if (BCrypt.checkpw(new, company.password)) {
                             showReuseWarning()
                             return@launch
                         }
-
-                        updateCompanyPasswordAndActivate(company.id, newPass)
-                        val intent = Intent(this@ResetPasswordActivity, Login::class.java)
-                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                        startActivity(intent)
-                        finish()
+                        updateCompanyPasswordAndActivate(company.id, new, company.password, company.isActive)
                         return@launch
+                    }
 
+                    // 2️⃣ Otherwise check users
+                    val user = supabase.postgrest["users"]
+                        .select { eq("email", email); limit(1) }
+                        .decodeList<User>()
+                        .firstOrNull()
 
-
-                    } else {
-                        val userResult = supabase.postgrest
-                            .from("users")
-                            .select { eq("email", email); limit(1) }
-
-                        val users = json.decodeFromString<List<User>>(userResult.body.toString())
-                        val user = users.firstOrNull()
-
-                        if (user != null) {
-
-                            if (BCrypt.checkpw(newPass, user.password)) {
-                                showReuseWarning()
-                                return@launch
-                            }
-
-                            updatePassword("users", user.id, newPass)
-                            val intent = Intent(this@ResetPasswordActivity, Login::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
-                            finish()
+                    if (user != null) {
+                        if (BCrypt.checkpw(new, user.password)) {
+                            showReuseWarning()
                             return@launch
-
                         }
+                        updatePassword("users", user.id, new, user.password)
+                        return@launch
                     }
 
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@ResetPasswordActivity,
-                            "Email not found.",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                        Toast.makeText(this@ResetPasswordActivity, "Email not found.", Toast.LENGTH_SHORT).show()
                     }
 
                 } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            this@ResetPasswordActivity,
-                            "Something went wrong.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
+                    Log.e("ResetPassword", "Error", e)
+                    showFailToast()
                 }
             }
         }
-
-
     }
 
 
-    private suspend fun updatePassword(table: String, id: String, newPassword: String) {
+
+
+
+    private suspend fun updatePassword(table: String, id: String, newPassword: String, oldPassword: String) {
         val supabase = app.supabase
-        val hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt())
-        supabase.postgrest[table].update(mapOf("password" to hashed)) {
-            eq("id", id)
-        }
-        withContext(Dispatchers.Main) {
-            Toast.makeText(
-                this@ResetPasswordActivity,
-                "Password changed successfully.",
-                Toast.LENGTH_SHORT
-            ).show()
-            finish()
-        }
-
-
-    }
-
-    private suspend fun updateCompanyPasswordAndActivate(id: String, newPassword: String) {
-        val supabase = app.supabase
-        val hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+        val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
 
         try {
+            supabase.postgrest[table].update(mapOf("password" to hashedNew)) { eq("id", id) }
 
+            val historyInserted = insertPasswordHistoryWithRetry(supabase, id, hashedNew, "user")
+            if (!historyInserted) {
+                supabase.postgrest[table].update(mapOf("password" to oldPassword)) { eq("id", id) }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ResetPasswordActivity, "Password change failed. Rolled back.", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ResetPasswordActivity, "Password changed successfully.", Toast.LENGTH_SHORT).show()
+                goToLogin()
+            }
+
+        } catch (e: Exception) {
+            supabase.postgrest[table].update(mapOf("password" to oldPassword)) { eq("id", id) }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ResetPasswordActivity, "Password change failed. Rolled back.", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+
+
+
+    private suspend fun updateCompanyPasswordAndActivate(id: String, newPassword: String, oldPassword: String, isActive: Boolean) {
+        val supabase = app.supabase
+        val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+
+        try {
             val updatePayload = CompanyUpdatePayload(
-                password = hashed,
+                password = hashedNew,
                 isActive = true
             )
-            val response = supabase.postgrest["companies"]
-                .update(updatePayload) {
+
+            supabase.postgrest["companies"].update(updatePayload) {
+                eq("id", id)
+            }
+
+
+            val historyInserted = insertPasswordHistoryWithRetry(supabase, id, hashedNew, "company")
+            if (!historyInserted) {
+
+                val rollback = CompanyUpdatePayload(
+                    password = hashedNew,
+                    isActive = isActive
+                )
+
+                supabase.postgrest["companies"].update(rollback) {
                     eq("id", id)
                 }
 
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(this@ResetPasswordActivity, "Password change failed. Rolled back.", Toast.LENGTH_LONG).show()
+                }
+                return
+            }
 
             withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    this@ResetPasswordActivity,
-                    "Password changed successfully.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                finish()
+                Toast.makeText(this@ResetPasswordActivity, "Password changed successfully.", Toast.LENGTH_SHORT).show()
+                goToLogin()
             }
+
         } catch (e: Exception) {
-            Log.e("ResetPassword", "Update failed", e)
+            supabase.postgrest["companies"].update(mapOf("password" to oldPassword, "is_active" to isActive)) { eq("id", id) }
             withContext(Dispatchers.Main) {
-                Toast.makeText(
-                    this@ResetPasswordActivity,
-                    "Error updating password.",
-                    Toast.LENGTH_SHORT
-                ).show()
+                Toast.makeText(this@ResetPasswordActivity, "Password change failed. Rolled back.", Toast.LENGTH_LONG).show()
             }
         }
     }
 
 
 
+    private fun goToLogin() {
+        val intent = Intent(this@ResetPasswordActivity, Login::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
 
     private fun updatePasswordStrength(password: String) {
         val zxcvbn = Zxcvbn()

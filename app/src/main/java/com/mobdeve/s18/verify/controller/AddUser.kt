@@ -18,6 +18,7 @@ import java.util.*
 import android.text.TextWatcher
 import android.text.Editable
 import androidx.core.content.ContextCompat
+import com.mobdeve.s18.verify.repository.insertPasswordHistoryWithRetry
 import com.nulabinc.zxcvbn.Zxcvbn
 
 class AddUser : BaseActivity() {
@@ -122,6 +123,7 @@ class AddUser : BaseActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val supabase = app.supabase
+                    val newUserId = UUID.randomUUID().toString()
 
                     val companyEmailCheck = supabase.postgrest["companies"]
                         .select { eq("email", email) }
@@ -139,7 +141,7 @@ class AddUser : BaseActivity() {
                     }
 
                     val newUser = User(
-                        id = UUID.randomUUID().toString(),
+                        id = newUserId,
                         companyID = companyID,
                         role = role,
                         name = name,
@@ -152,6 +154,24 @@ class AddUser : BaseActivity() {
 
                     supabase.postgrest["users"].insert(newUser)
 
+                    val success = insertPasswordHistoryWithRetry(
+                        supabase,
+                        newUserId,
+                        hashedPassword,
+                        "user"
+                    )
+
+                    if (!success) {
+                        // 4. Rollback: delete the user
+                        supabase.postgrest["users"].delete { eq("id", newUserId) }
+
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(this@AddUser, "Failed to add user. Rolled back.", Toast.LENGTH_LONG).show()
+                        }
+                        return@launch
+                    }
+
+                    // 5. Success
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@AddUser, "User added successfully!", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@AddUser, ManageUser::class.java))
@@ -164,6 +184,7 @@ class AddUser : BaseActivity() {
                     }
                 }
             }
+
         }
     }
 
@@ -172,7 +193,7 @@ class AddUser : BaseActivity() {
         val zxcvbn = Zxcvbn()
         val strength = zxcvbn.measure(password)
 
-        val score = strength.score
+        val score = strength.score  // 0 (very weak) to 4 (very strong)
         val feedback = strength.feedback.suggestions.joinToString(", ")
 
         val (progress, label, color) = when (score) {
@@ -191,6 +212,7 @@ class AddUser : BaseActivity() {
             android.graphics.PorterDuff.Mode.SRC_IN
         )
     }
+
 
     private fun getPasswordStrengthError(password: String): String? {
         if (password.length < 8) return "Password must be at least 8 characters long."

@@ -5,17 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginTop="20dp"
-    android:elevation="8dp"
-    card_view:cardBackgroundColor="@color/green_primary"
-    card_view:cardCornerRadius="5dp"
-    card_view:cardPreventCornerOverlap="true"
+    card_view:cardBackgroundColor="#00FFFFFF"
+    card_view:cardCornerRadius="12dp"
+    card_view:cardElevation="4dp"
+    card_view:cardPreventCornerOverlap="false"
     card_view:cardUseCompatPadding="false">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#00FFFFFF"
-        android:backgroundTint="#00FFFFFF"
+        android:background="@drawable/round_greenbg"
         android:orientation="vertical"
         android:padding="24dp">
 
@@ -24,6 +23,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_horizontal"
             android:layout_marginBottom="24dp"
+            android:background="#00E70808"
             android:text="Update User"
             android:textColor="#FFFFFF"
             android:textSize="20sp"

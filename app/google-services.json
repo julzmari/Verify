@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "752466148937",
+    "project_id": "verify-app-6e749",
+    "storage_bucket": "verify-app-6e749.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:752466148937:android:e6e449831e8f84c4658998",
+        "android_client_info": {
+          "package_name": "com.mobdeve.s18.verify"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCc8DjefPtLBCkhqyJ0wp-tr5cYc9ClKDk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

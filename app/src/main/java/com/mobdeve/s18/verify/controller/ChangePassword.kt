@@ -17,6 +17,8 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.mindrot.jbcrypt.BCrypt
 import androidx.lifecycle.lifecycleScope
+import com.mobdeve.s18.verify.repository.PasswordHistoryRepository
+import com.mobdeve.s18.verify.repository.insertPasswordHistoryWithRetry
 
 class ChangePassword : AppCompatActivity() {
 
@@ -40,6 +42,8 @@ class ChangePassword : AppCompatActivity() {
         confirmPassword = findViewById(R.id.confirmPassword)
         submitButton = findViewById(R.id.submitPassword)
         discardButton = findViewById(R.id.discardPassword)
+
+
 
         // Dynamically insert strength bar and label
         strengthBar = ProgressBar(this, null, android.R.attr.progressBarStyleHorizontal)
@@ -104,7 +108,7 @@ class ChangePassword : AppCompatActivity() {
                             return@launch
                         }
 
-                        updatePassword("companies", idToCheck, new)
+                        updatePassword("companies", idToCheck, new, company.password)
 
                     } else {
                         idToCheck = app.employeeID ?: return@launch
@@ -122,7 +126,7 @@ class ChangePassword : AppCompatActivity() {
                             return@launch
                         }
 
-                        updatePassword("users", idToCheck, new)
+                        updatePassword("users", idToCheck, new, user.password)
                     }
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
@@ -178,17 +182,68 @@ class ChangePassword : AppCompatActivity() {
         )
     }
 
-    private suspend fun updatePassword(table: String, id: String, newPassword: String) {
+    private suspend fun updatePassword(table: String, id: String, newPassword: String, oldPassword: String) {
         val supabase = app.supabase
-        val hashed = BCrypt.hashpw(newPassword, BCrypt.gensalt())
-        supabase.postgrest[table].update(mapOf("password" to hashed)) {
-            eq("id", id)
-        }
-        withContext(Dispatchers.Main) {
-            Toast.makeText(this@ChangePassword, "Password changed successfully.", Toast.LENGTH_SHORT).show()
-            finish()
+        val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+
+
+        try {
+            // 2️⃣ Update password in DB first
+            supabase.postgrest[table].update(mapOf("password" to hashedNew)) {
+                eq("id", id)
+            }
+
+            // 3️⃣ Insert into password_history with retry
+            val userType = if (table == "companies") "company" else "user"
+
+            val historyInserted = insertPasswordHistoryWithRetry(
+                supabase,
+                userId = id,
+                hashedPassword = hashedNew,
+                userType = userType)
+
+            if (!historyInserted) {
+                // 🔄 Rollback: restore old password if history insert failed
+                supabase.postgrest[table].update(mapOf("password" to oldPassword)) {
+                        eq("id", id)
+                    }
+
+
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@ChangePassword,
+                        "Password change failed. Rolled back to the previous password.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                return
+            }
+
+            // ✅ Success
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ChangePassword, "Password changed successfully.", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+
+        } catch (e: Exception) {
+            // 4️⃣ Rollback in case of unexpected exception
+            supabase.postgrest[table].update(mapOf("password" to oldPassword)) {
+                    eq("id", id)
+                }
+
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@ChangePassword,
+                    "Password change failed. Rolled back to previous password.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
         }
     }
+
+
+
+
 
     private suspend fun showFailToast() {
         withContext(Dispatchers.Main) {

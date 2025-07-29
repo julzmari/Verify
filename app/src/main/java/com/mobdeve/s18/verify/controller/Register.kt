@@ -19,6 +19,11 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import com.nulabinc.zxcvbn.Zxcvbn
 import android.text.TextWatcher
+import com.mobdeve.s18.verify.model.Company
+import com.mobdeve.s18.verify.repository.insertPasswordHistoryWithRetry
+import io.github.jan.supabase.SupabaseClient
+import kotlinx.serialization.json.Json
+
 
 
 class Register : AppCompatActivity() {
@@ -144,9 +149,11 @@ class Register : AppCompatActivity() {
         val hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt())
 
         CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val supabase = (application as VerifiApp).supabase
+            val supabase = (application as VerifiApp).supabase
+            val json = Json { ignoreUnknownKeys = true }
 
+            try {
+                // --- Check email uniqueness ---
                 val companyEmailCheck = supabase.postgrest["companies"]
                     .select { eq("email", email) }
                     .decodeList<JsonObject>()
@@ -157,21 +164,39 @@ class Register : AppCompatActivity() {
 
                 if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
                     withContext(Dispatchers.Main) {
-                        Toast.makeText(this@Register, "Registration failed. Please try again.", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(this@Register, "Registration failed. Email already used.", Toast.LENGTH_SHORT).show()
                     }
                     Log.w("REGISTER_ATTEMPT", "Email already used: $email")
                     return@launch
                 }
 
-                val registerData = buildJsonObject {
-                    put("name", name)
-                    put("email", email)
-                    put("password", hashedPassword)
-                    put("isActive", true)
+                // --- Insert company ---
+                val insertedCompany = supabase.postgrest["companies"]
+                    .insert(
+                        buildJsonObject {
+                            put("name", name)
+                            put("email", email)
+                            put("password", hashedPassword)
+                            put("isActive", true)
+                        }
+                    )
+                    .decodeSingle<Company>()
+
+                // --- Try inserting password_history with retry ---
+                val success = insertPasswordHistoryWithRetry(supabase, insertedCompany.id, hashedPassword, "company")
+
+                if (!success) {
+                    // Rollback: delete the company if history insert failed
+                    Log.e("REGISTER_ROLLBACK", "Deleting company ${insertedCompany.id} due to password_history failure.")
+                    supabase.postgrest["companies"].delete { eq("id", insertedCompany.id) }
+
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@Register, "Registration failed. Please try again.", Toast.LENGTH_LONG).show()
+                    }
+                    return@launch
                 }
 
-                supabase.postgrest["companies"].insert(registerData)
-
+                // --- Registration successful ---
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Register, "Company registered!", Toast.LENGTH_SHORT).show()
                     Log.i("REGISTER_ATTEMPT", "New company registered: $email")
@@ -187,6 +212,10 @@ class Register : AppCompatActivity() {
             }
         }
     }
+
+
+
+
 
     @Deprecated("Deprecated in Java")
     override fun onBackPressed() {
