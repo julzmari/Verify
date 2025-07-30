@@ -6,8 +6,7 @@
     android:layout_height="wrap_content"
     android:layout_marginTop="20dp"
     card_view:cardBackgroundColor="@android:color/transparent"
-    card_view:cardCornerRadius="12dp"
-    card_view:cardElevation="4dp"
+    card_view:cardElevation="0dp"
     card_view:cardPreventCornerOverlap="false"
     card_view:cardUseCompatPadding="false">
 
@@ -39,11 +38,12 @@
             android:inputType="textPersonName"
             android:padding="12dp" />
 
+
         <EditText
             android:id="@+id/editEmail"
-            android:layout_width="match_parent"
+            android:layout_width="362dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="12dp"
+            android:layout_marginBottom="10dp"
             android:background="#FFFFFF"
             android:hint="Email"
             android:inputType="textEmailAddress"
@@ -51,14 +51,15 @@
 
         <Spinner
             android:id="@+id/userRoleSpinner"
-            android:layout_width="match_parent"
+            android:layout_width="372dp"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:background="#FFFFFF"
+            android:layout_gravity="center_horizontal"
+            android:background="@android:drawable/btn_dropdown"
+            android:padding="16dp"
             android:spinnerMode="dropdown" />
 
-
         <LinearLayout
+            android:layout_marginTop="5dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
