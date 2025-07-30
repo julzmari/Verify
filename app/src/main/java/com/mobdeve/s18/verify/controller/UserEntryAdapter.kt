@@ -38,6 +38,9 @@ class UserEntryAdapter(
 
             val context = itemView.context
 
+            Log.d("UserEntryAdapter", "Binding user entry: username='${user.username}', status='${user.status}'")
+
+
             when (user.status.trim().lowercase()) {
                 "in-transit" -> status.setBackgroundColor(context.getColor(R.color.InTransit))
                 "unexpected stop" -> status.setBackgroundColor(context.getColor(R.color.UnexpectedStop))

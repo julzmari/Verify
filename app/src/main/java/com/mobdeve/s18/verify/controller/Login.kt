@@ -94,11 +94,13 @@ class Login : AppCompatActivity() {
 
 
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || email.length > 100) {
+                Log.w("Validation", "Login failed: Invalid email format or too long -> $email")
                 Toast.makeText(this@Login, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (password.length < 8 || password.length > 50) {
+                Log.w("Validation", "Login failed: Password length invalid for $email")
                 Toast.makeText(this@Login, "Password must be 8 to 50 characters", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -139,12 +141,14 @@ class Login : AppCompatActivity() {
                 if (company != null) {
                     if (!company.isActive) {
                         withContext(Dispatchers.Main) {
+                            Log.w("Auth", "Login blocked: Company $email is deactivated")
                             Toast.makeText(this@Login, "Company account is deactivated", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
                     }
 
                     if (BCrypt.checkpw(password, company.password)) {
+                        Log.i("Auth", "Login success: Company owner $email")
                         supabase.postgrest.from("companies").update(
                             mapOf("last_login" to kotlinx.datetime.Clock.System.now().toString())
                         ) {
@@ -165,6 +169,7 @@ class Login : AppCompatActivity() {
 
                         return@launch
                     } else {
+                        Log.w("Auth", "Login failed: Incorrect password for company $email (Attempt ${currentAttempts + 1})")
                         supabase.postgrest.from("companies").update(
                             mapOf("last_failed_login" to kotlinx.datetime.Clock.System.now().toString())
                         ) {
@@ -212,6 +217,7 @@ class Login : AppCompatActivity() {
                 if (user != null) {
                     if (!user.isActive) {
                         withContext(Dispatchers.Main) {
+                            Log.w("Auth", "Login blocked: User $email is deactivated")
                             Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
@@ -221,6 +227,8 @@ class Login : AppCompatActivity() {
                     val currentUserAttempts = prefs.getInt(userAttemptKey, 0)
 
                     if (BCrypt.checkpw(password, user.password)) {
+                        Log.i("Auth", "Login success: ${user.role} $email")
+
                         supabase.postgrest.from("users").update(
                             mapOf("last_login" to kotlinx.datetime.Clock.System.now().toString())
                         ) {
@@ -258,6 +266,8 @@ class Login : AppCompatActivity() {
                         }
                         return@launch
                     } else {
+                        Log.w("Auth", "Login failed: Incorrect password for user $email (Attempt ${currentUserAttempts + 1})")
+
                         val newAttempts = currentUserAttempts + 1
 
                         supabase.postgrest.from("users").update(
@@ -278,6 +288,7 @@ class Login : AppCompatActivity() {
                                 Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
                             }
                         } else {
+                            Log.w("Auth", "Login failed: No account found for $email")
                             prefs.edit().putInt(userAttemptKey, newAttempts).apply()
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(

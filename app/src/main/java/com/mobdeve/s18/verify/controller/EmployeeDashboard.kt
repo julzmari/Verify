@@ -55,6 +55,8 @@ class EmployeeDashboard : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_employeedashboard)
+        Log.i("EmployeeDashboard", "onCreate started")
+
 
         welcomeText = findViewById(R.id.welcomeText)
         submissionCount = findViewById(R.id.submissionCount)
@@ -62,10 +64,15 @@ class EmployeeDashboard : BaseActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationPermissionRequest.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        Log.d("EmployeeDashboard", "Requested location permission")
 
         cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
+                Log.i("EmployeeDashboard", "Camera activity returned RESULT_OK, refreshing dashboard")
                 fetchUserData() // refresh dashboard if submission succeeded
+
+            }else{
+                Log.w("EmployeeDashboard", "Camera activity canceled or failed")
             }
         }
 
@@ -73,6 +80,7 @@ class EmployeeDashboard : BaseActivity() {
 
         captureButton = findViewById(R.id.captureBtnDashboard)
         captureButton.setOnClickListener {
+            Log.i("EmployeeDashboard", "Capture button clicked, launching camera")
             val intent = Intent(this, UserCamera::class.java)
             cameraLauncher.launch(intent)
         }
@@ -90,6 +98,7 @@ class EmployeeDashboard : BaseActivity() {
                 val employeeID = app.employeeID
 
                 if (employeeID.isNullOrEmpty()) {
+                    Log.e("EmployeeDashboard", "EmployeeID missing! Redirecting to login.")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@EmployeeDashboard, "Unauthorized access. Please login again.", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@EmployeeDashboard, Login::class.java))
@@ -97,19 +106,29 @@ class EmployeeDashboard : BaseActivity() {
                     }
                     return@launch
                 }
-
+                Log.d("EmployeeDashboard", "Fetching user info for employeeID=$employeeID")
                 val userResponse = supabase.postgrest["users?id=eq.$employeeID"].select()
                 val user = userResponse.decodeList<User>().firstOrNull()
-                app.username = user?.name
+                if (user != null) {
+                    Log.i("Dashboard", "Successfully fetched user ${user.email}")
+                    app.username = user.name
+                } else {
+                    Log.w("Dashboard", "User not found for employeeID $employeeID")
+                }
+
 
                 val today = LocalDate.now(ZoneOffset.UTC)
                 val startOfDay = today.atStartOfDay().toString()
                 val endOfDay = today.plusDays(1).atStartOfDay().toString()
 
+                Log.d("EmployeeDashboard", "Querying submissions for today ($startOfDay to $endOfDay)")
+
                 val response = supabase.postgrest["photos?user_id=eq.$employeeID&datetime=gte.$startOfDay&datetime=lt.$endOfDay"]
                     .select()
 
                 val submissionTodayCount = response.decodeList<UserEntry>().size
+                Log.i("Dashboard", "Fetched $submissionTodayCount submissions for today.")
+
 
                 withContext(Dispatchers.Main) {
                     welcomeText.text = "Welcome, ${user?.name ?: "Unknown"}!"
@@ -136,6 +155,8 @@ class EmployeeDashboard : BaseActivity() {
                         Log.e("Location", "Invalid coordinates")
                         return@addOnSuccessListener
                     }
+                    Log.i("Location", "Successfully retrieved location: ${location.latitude}, ${location.longitude}")
+
 
                     val geocoder = Geocoder(this)
                     try {
