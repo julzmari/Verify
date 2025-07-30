@@ -191,6 +191,25 @@ class ChangePassword : AppCompatActivity() {
 
         val userType = if (table == "companies") "company" else "user"
 
+        val canChange = try {
+            repo.isPasswordChangeAllowed(id, userType)
+        } catch (e: Exception) {
+            Log.e("PASSWORD_HISTORY", "Check failed: ${e.message}", e)
+            false
+        }
+
+        if (!canChange) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(
+                    this@ChangePassword,
+                    "Password cannot be changed yet. Please wait 24 hours since your last change.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            return
+        }
+
+
 
         if (repo.isPasswordReused(id, userType, newPassword)) {
             withContext(Dispatchers.Main) {

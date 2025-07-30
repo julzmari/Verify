@@ -162,7 +162,6 @@ class ResetPasswordActivity : AppCompatActivity() {
                 return
             }
 
-            val repo = PasswordHistoryRepository(supabase)
             try {
                 repo.pruneOldPasswords(id, "user")
             } catch (e: Exception) {
@@ -215,7 +214,7 @@ class ResetPasswordActivity : AppCompatActivity() {
             if (!historyInserted) {
 
                 val rollback = CompanyUpdatePayload(
-                    password = hashedNew,
+                    password = oldPassword,
                     isActive = isActive
                 )
 
@@ -229,7 +228,6 @@ class ResetPasswordActivity : AppCompatActivity() {
                 return
             }
 
-            val repo = PasswordHistoryRepository(supabase)
             try {
                 repo.pruneOldPasswords(id, "company")
             } catch (e: Exception) {

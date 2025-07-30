@@ -12,6 +12,8 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.mindrot.jbcrypt.BCrypt
+import java.text.SimpleDateFormat
+import java.util.*
 
 class PasswordHistoryRepository(private val supabase: SupabaseClient) {
 
@@ -77,6 +79,28 @@ class PasswordHistoryRepository(private val supabase: SupabaseClient) {
                 }
             }
         }
+
+    suspend fun isPasswordChangeAllowed(userId: String, userType: String): Boolean {
+        val records = supabase.postgrest["password_history"]
+            .select {
+                eq("user_id", userId)
+                eq("user_type", userType)
+                order("changed_at", Order.DESCENDING)
+                limit(1)
+            }
+            .decodeList<PasswordHistory>()
+
+        val lastChangeStr = records.firstOrNull()?.changed_at ?: return true
+
+        val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+        sdf.timeZone = TimeZone.getTimeZone("UTC")
+        val lastChangeDate = sdf.parse(lastChangeStr) ?: return true
+
+        val hoursSinceChange = (Date().time - lastChangeDate.time) / (1000 * 60 * 60)
+        return hoursSinceChange >= 24
+    }
+
+
 }
 
 /**
