@@ -16,12 +16,18 @@ open class BaseActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         app = applicationContext as VerifiApp
         role = app.authorizedRole
+
+        if (role == null) {
+            startActivity(Intent(this, Login::class.java))
+            finish()
+            return
+        }
+
     }
 
     protected fun setupBottomNavigation(bottomNav: BottomNavigationView, currentItemId: Int) {
         bottomNav.selectedItemId = currentItemId
         bottomNav.setOnItemSelectedListener {
-            if (role == null) return@setOnItemSelectedListener false
 
             val intent = when (it.itemId) {
                 R.id.nav_home -> {
