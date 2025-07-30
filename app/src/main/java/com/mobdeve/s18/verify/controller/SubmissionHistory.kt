@@ -10,6 +10,7 @@ import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
@@ -45,6 +46,8 @@ class SubmissionHistory : BaseActivity() {
     private val selectedStatuses: MutableSet<String> = mutableSetOf()
     private var sortOrder: String = "desc"
 
+    private lateinit var emptyMessageText: TextView
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -64,6 +67,8 @@ class SubmissionHistory : BaseActivity() {
 
         recyclerView = findViewById(R.id.submission_history_recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
+
+        emptyMessageText = findViewById(R.id.emptySubmissionMessageText)
 
         userEntriesFiltered = mutableListOf()
 
@@ -256,6 +261,14 @@ class SubmissionHistory : BaseActivity() {
             filteredList.sortedBy { it.datetime }
         } else {
             filteredList.sortedByDescending { it.datetime }
+        }
+
+        if (filteredList.isEmpty()) {
+            emptyMessageText.visibility = View.VISIBLE
+            recyclerView.visibility = View.GONE
+        } else {
+            emptyMessageText.visibility = View.GONE
+            recyclerView.visibility = View.VISIBLE
         }
 
         recyclerView.adapter = UserEntryAdapter(sortedList) { }

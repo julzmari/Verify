@@ -21,60 +21,48 @@ open class BaseActivity : AppCompatActivity() {
     protected fun setupBottomNavigation(bottomNav: BottomNavigationView, currentItemId: Int) {
         bottomNav.selectedItemId = currentItemId
         bottomNav.setOnItemSelectedListener {
-            if (role == null) {
-                // Fail securely: do nothing if role is undefined
-                return@setOnItemSelectedListener false
-            }
+            if (role == null) return@setOnItemSelectedListener false
 
-            when (it.itemId) {
+            val intent = when (it.itemId) {
                 R.id.nav_home -> {
-                    if (currentItemId != R.id.nav_home) {
-                        val intent = when (role) {
-                            "worker" -> Intent(this, EmployeeDashboard::class.java)
-                            "admin", "owner" -> Intent(this, AdminDashboardActivity::class.java)
-                            else -> return@setOnItemSelectedListener false // fail secure
-                        }
-                        startActivity(intent)
+                    if (currentItemId == R.id.nav_home) return@setOnItemSelectedListener true
+                    when (role) {
+                        "worker" -> Intent(this, EmployeeDashboard::class.java)
+                        "admin", "owner" -> Intent(this, AdminDashboardActivity::class.java)
+                        else -> return@setOnItemSelectedListener false
                     }
-                    true
                 }
 
                 R.id.nav_history -> {
-                    if (currentItemId != R.id.nav_history) {
-                        if (role in listOf("worker", "admin", "owner")) {
-                            val intent = Intent(this, SubmissionHistory::class.java)
-                            intent.putExtra("role", role)
-                            startActivity(intent)
-                        } else {
-                            return@setOnItemSelectedListener false
-                        }
-                    }
-                    true
+                    if (currentItemId == R.id.nav_history) return@setOnItemSelectedListener true
+                    if (role in listOf("worker", "admin", "owner")) {
+                        Intent(this, SubmissionHistory::class.java).putExtra("role", role)
+                    } else return@setOnItemSelectedListener false
                 }
 
                 R.id.nav_users -> {
                     if (role != "worker") {
-                        startActivity(Intent(this, ManageUser::class.java))
-                    } else {
-                        return@setOnItemSelectedListener false
-                    }
-                    true
+                        Intent(this, ManageUser::class.java)
+                    } else return@setOnItemSelectedListener false
                 }
 
                 R.id.nav_settings -> {
-                    if (currentItemId != R.id.nav_settings) {
-                        val intent = when (role) {
-                            "worker" -> Intent(this, Settings::class.java)
-                            "admin", "owner" -> Intent(this, AdminSettings::class.java)
-                            else -> return@setOnItemSelectedListener false
-                        }
-                        startActivity(intent)
+                    if (currentItemId == R.id.nav_settings) return@setOnItemSelectedListener true
+                    when (role) {
+                        "worker" -> Intent(this, Settings::class.java)
+                        "admin", "owner" -> Intent(this, AdminSettings::class.java)
+                        else -> return@setOnItemSelectedListener false
                     }
-                    true
                 }
 
-                else -> false
+                else -> return@setOnItemSelectedListener false
             }
+
+            // Prevent animation + clear top stack
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+
+            true
         }
     }
 }

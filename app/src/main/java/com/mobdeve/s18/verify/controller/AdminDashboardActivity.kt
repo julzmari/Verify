@@ -2,6 +2,8 @@ package com.mobdeve.s18.verify.controller
 
 import android.os.Bundle
 import android.util.Log
+import android.view.View
+import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.osmdroid.config.Configuration
@@ -25,6 +27,8 @@ class AdminDashboardActivity : BaseActivity() {
 
     private lateinit var mapView: MapView
     private lateinit var recyclerView: RecyclerView
+    private lateinit var emptyMessageText: TextView
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +39,7 @@ class AdminDashboardActivity : BaseActivity() {
 
         mapView = findViewById(R.id.adminDashboard_mapView)
         recyclerView = findViewById(R.id.admin_dashboard_recyclerView)
+        emptyMessageText = findViewById(R.id.emptyMessageText)
 
         mapView.setTileSource(TileSourceFactory.MAPNIK)
         mapView.setMultiTouchControls(true)
@@ -72,6 +77,15 @@ class AdminDashboardActivity : BaseActivity() {
                 }
 
                 withContext(Dispatchers.Main) {
+
+                    if (recentEntries.isEmpty()) {
+                        emptyMessageText.visibility = View.VISIBLE
+                        recyclerView.visibility = View.GONE
+                    } else {
+                        emptyMessageText.visibility = View.GONE
+                        recyclerView.visibility = View.VISIBLE
+                    }
+
                     if (firstEntry != null) {
                         val firstEntryMarker = Marker(mapView).apply {
                             position = startPoint

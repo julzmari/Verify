@@ -15,11 +15,16 @@ class Homepage : AppCompatActivity() {
         val loginButton = findViewById<Button>(R.id.homepage_login_btn)
 
         registerButton.setOnClickListener {
-            startActivity(Intent(this, Register::class.java))
+            val intent = Intent(this, Register::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
+            overridePendingTransition(0, 0)
         }
 
         loginButton.setOnClickListener {
-            startActivity(Intent(this, Login::class.java))
+            val intent = Intent(this, Login::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            startActivity(intent)
         }
     }
 }

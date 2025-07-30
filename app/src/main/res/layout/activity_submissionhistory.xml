@@ -23,7 +23,7 @@
         android:layout_marginEnd="20dp"
         android:text="Submission History"
         android:textColor="@color/green_primary"
-        android:textSize="35sp"
+        android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -34,7 +34,6 @@
         android:layout_width="0dp"
         android:layout_height="80dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="10dp"
         android:layout_marginEnd="20dp"
         android:orientation="horizontal"
         app:layout_constraintEnd_toEndOf="parent"
@@ -90,11 +89,27 @@
             android:src="@drawable/filter" />
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/emptySubmissionMessageText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:padding="16dp"
+        android:text="No submissions yet."
+        android:textAlignment="center"
+        android:textColor="@color/material_dynamic_neutral40"
+        android:textSize="16sp"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="20dp"
         android:fillViewport="true"
+        android:visibility="visible"
         app:layout_constraintBottom_toTopOf="@+id/bottomNav"
         app:layout_constraintTop_toBottomOf="@+id/linearLayout2">
 
