@@ -108,6 +108,7 @@ class ManageUser : BaseActivity() {
             .setView(dialogView)
             .create()
         dialog.show()
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
 
         val usernameField = dialogView.findViewById<EditText>(R.id.editUsername)
         val emailField = dialogView.findViewById<EditText>(R.id.editEmail)
@@ -130,8 +131,8 @@ class ManageUser : BaseActivity() {
 
         // Reverse map to set the correct spinner position from user's current role
         val reverseRoleMap = roleMap.entries.associate { (k, v) -> v to k }
-
-        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, roleDisplayNames)
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, roleDisplayNames)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         roleSpinner.adapter = adapter
 
         // Set spinner to current user role
