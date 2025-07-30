@@ -12,6 +12,7 @@ import com.mobdeve.s18.verify.app.VerifiApp
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.io.IOException
 
 class ForgotPassword : AppCompatActivity() {
@@ -73,19 +74,34 @@ class ForgotPassword : AppCompatActivity() {
 
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string()
+                Log.d("ForgotPassword", "Response code: ${response.code}, body: $body")
 
                 runOnUiThread {
-                    if (response.code >= 500) {
-                        Toast.makeText(this@ForgotPassword, "Server error. Please try again later.", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(this@ForgotPassword, "Code sent if email exists.", Toast.LENGTH_LONG).show()
-                        val intent = Intent(this@ForgotPassword, VerifyCodeActivity::class.java)
-                        intent.putExtra("email", email)
-                        startActivity(intent)
+                    when (response.code) {
+                        429 -> {
+
+                            val errorMessage = try {
+                                val json = JSONObject(body ?: "{}")
+                                json.optString("error", "A reset code was already sent recently.")
+                            } catch (e: Exception) {
+                                "A reset code was already sent recently."
+                            }
+                            Toast.makeText(this@ForgotPassword, errorMessage, Toast.LENGTH_LONG).show()
+                        }
+                        in 500..599 -> {
+                            Toast.makeText(this@ForgotPassword, "Server error. Please try again later.", Toast.LENGTH_SHORT).show()
+                        }
+                        else -> {
+                            Toast.makeText(this@ForgotPassword, "Code sent if email exists.", Toast.LENGTH_LONG).show()
+                            val intent = Intent(this@ForgotPassword, VerifyCodeActivity::class.java)
+                            intent.putExtra("email", email)
+                            startActivity(intent)
+                        }
                     }
                 }
-
             }
+
+
 
         })
     }
