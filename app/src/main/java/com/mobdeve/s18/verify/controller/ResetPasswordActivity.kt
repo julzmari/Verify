@@ -20,6 +20,8 @@ import io.github.jan.supabase.postgrest.postgrest
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import org.mindrot.jbcrypt.BCrypt
+import com.mobdeve.s18.verify.repository.PasswordHistoryRepository
+
 
 class ResetPasswordActivity : AppCompatActivity() {
 
@@ -135,6 +137,18 @@ class ResetPasswordActivity : AppCompatActivity() {
     private suspend fun updatePassword(table: String, id: String, newPassword: String, oldPassword: String) {
         val supabase = app.supabase
         val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+        val repo = PasswordHistoryRepository(supabase)
+
+        val userType = if (table == "companies") "company" else "user"
+
+
+        if (repo.isPasswordReused(id, userType, newPassword)) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ResetPasswordActivity, "Cannot reuse any of your last 3 passwords.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+
 
         try {
             supabase.postgrest[table].update(mapOf("password" to hashedNew)) { eq("id", id) }
@@ -146,6 +160,13 @@ class ResetPasswordActivity : AppCompatActivity() {
                     Toast.makeText(this@ResetPasswordActivity, "Password change failed. Rolled back.", Toast.LENGTH_LONG).show()
                 }
                 return
+            }
+
+            val repo = PasswordHistoryRepository(supabase)
+            try {
+                repo.pruneOldPasswords(id, "user")
+            } catch (e: Exception) {
+                Log.w("PASSWORD_HISTORY", "Pruning failed: ${e.message}")
             }
 
             withContext(Dispatchers.Main) {
@@ -167,6 +188,17 @@ class ResetPasswordActivity : AppCompatActivity() {
     private suspend fun updateCompanyPasswordAndActivate(id: String, newPassword: String, oldPassword: String, isActive: Boolean) {
         val supabase = app.supabase
         val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+        val repo = PasswordHistoryRepository(supabase)
+
+        val userType = "company"
+
+
+        if (repo.isPasswordReused(id, userType, newPassword)) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ResetPasswordActivity, "Cannot reuse any of your last 3 passwords.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
 
         try {
             val updatePayload = CompanyUpdatePayload(
@@ -195,6 +227,13 @@ class ResetPasswordActivity : AppCompatActivity() {
                     Toast.makeText(this@ResetPasswordActivity, "Password change failed. Rolled back.", Toast.LENGTH_LONG).show()
                 }
                 return
+            }
+
+            val repo = PasswordHistoryRepository(supabase)
+            try {
+                repo.pruneOldPasswords(id, "company")
+            } catch (e: Exception) {
+                Log.w("PASSWORD_HISTORY", "Pruning failed: ${e.message}")
             }
 
             withContext(Dispatchers.Main) {

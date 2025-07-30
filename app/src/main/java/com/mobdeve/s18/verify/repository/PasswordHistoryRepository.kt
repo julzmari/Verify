@@ -5,20 +5,20 @@ import com.mobdeve.s18.verify.model.PasswordHistory
 import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.postgrest.postgrest
 import io.github.jan.supabase.postgrest.query.Order
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import io.github.jan.supabase.postgrest.query.Columns
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
-
+import org.mindrot.jbcrypt.BCrypt
 
 class PasswordHistoryRepository(private val supabase: SupabaseClient) {
 
     private val tableName = "password_history"
 
     /**
-     * Fetch last 5 password history entries for a given user/company.
+     * Fetch last N password history entries for a given user/company.
      */
     suspend fun getLastNHistory(
         userId: String,
@@ -30,17 +30,27 @@ class PasswordHistoryRepository(private val supabase: SupabaseClient) {
                 eq("user_id", userId)
                 eq("user_type", userType)
                 order("changed_at", Order.DESCENDING)
-                limit(5)
+                limit(3)
             }
             .decodeList<PasswordHistory>()
     }
 
-
+    /**
+     * Check if the new password matches any of the last N hashed passwords.
+     */
+    suspend fun isPasswordReused(
+        userId: String,
+        userType: String,
+        newPassword: String,
+    ): Boolean {
+        val recentPasswords = getLastNHistory(userId, userType)
+        return recentPasswords.any { BCrypt.checkpw(newPassword, it.password_hash) }
+    }
 
     /**
-     * Keep only the latest N history entries (prune old entries)
+     * Keep only the latest `keep` history entries (prune old entries).
      */
-    suspend fun pruneOldHistory(userId: String, userType: String, keep: Int = 5) =
+    suspend fun pruneOldPasswords(userId: String, userType: String, keep: Int = 3) =
         withContext(Dispatchers.IO) {
             // Step 1: Get all IDs ordered by changed_at
             val allIds = supabase.postgrest
@@ -55,9 +65,9 @@ class PasswordHistoryRepository(private val supabase: SupabaseClient) {
 
             // Step 2: Compute IDs to delete
             if (allIds.size > keep) {
-                val deleteIds = allIds.drop(keep) // older entries
+                val deleteIds = allIds.drop(keep) // keep newest, drop old ones
 
-                // Step 3: Delete them one by one (safe for v1.4.2)
+                // Step 3: Delete them one by one
                 for (id in deleteIds) {
                     supabase.postgrest
                         .from(tableName)
@@ -67,10 +77,11 @@ class PasswordHistoryRepository(private val supabase: SupabaseClient) {
                 }
             }
         }
-
-
 }
 
+/**
+ * Insert password history with retry, without modifying your working logic.
+ */
 suspend fun insertPasswordHistoryWithRetry(
     supabase: SupabaseClient,
     userId: String,
@@ -97,4 +108,3 @@ suspend fun insertPasswordHistoryWithRetry(
     Log.e("PASSWORD_HISTORY", "All retry attempts failed.")
     return false
 }
-

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -185,15 +186,26 @@ class ChangePassword : AppCompatActivity() {
     private suspend fun updatePassword(table: String, id: String, newPassword: String, oldPassword: String) {
         val supabase = app.supabase
         val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
+        val repo = PasswordHistoryRepository(supabase)
+
+
+        val userType = if (table == "companies") "company" else "user"
+
+
+        if (repo.isPasswordReused(id, userType, newPassword)) {
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@ChangePassword, "Cannot reuse any of your last 3 passwords.", Toast.LENGTH_LONG).show()
+            }
+            return
+        }
+
 
 
         try {
-            // 2️⃣ Update password in DB first
             supabase.postgrest[table].update(mapOf("password" to hashedNew)) {
                 eq("id", id)
             }
 
-            // 3️⃣ Insert into password_history with retry
             val userType = if (table == "companies") "company" else "user"
 
             val historyInserted = insertPasswordHistoryWithRetry(
@@ -203,10 +215,10 @@ class ChangePassword : AppCompatActivity() {
                 userType = userType)
 
             if (!historyInserted) {
-                // 🔄 Rollback: restore old password if history insert failed
                 supabase.postgrest[table].update(mapOf("password" to oldPassword)) {
                         eq("id", id)
                     }
+
 
 
                 withContext(Dispatchers.Main) {
@@ -219,14 +231,19 @@ class ChangePassword : AppCompatActivity() {
                 return
             }
 
-            // ✅ Success
+            try {
+                repo.pruneOldPasswords(id, userType)
+            } catch (e: Exception) {
+                Log.w("PASSWORD_HISTORY", "Failed to prune old passwords: ${e.message}")
+            }
+
+
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@ChangePassword, "Password changed successfully.", Toast.LENGTH_SHORT).show()
                 finish()
             }
 
         } catch (e: Exception) {
-            // 4️⃣ Rollback in case of unexpected exception
             supabase.postgrest[table].update(mapOf("password" to oldPassword)) {
                     eq("id", id)
                 }
@@ -256,4 +273,8 @@ class ChangePassword : AppCompatActivity() {
             Toast.makeText(this@ChangePassword, "New password must be different.", Toast.LENGTH_SHORT).show()
         }
     }
+
+
+
+
 }
