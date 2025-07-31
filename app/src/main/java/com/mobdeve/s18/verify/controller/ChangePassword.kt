@@ -73,20 +73,20 @@ class ChangePassword : AppCompatActivity() {
             val confirm = confirmPassword.text.toString()
 
             if (current.isBlank() || new.isBlank() || confirm.isBlank()) {
-                Log.w("PWD_CHANGE_VALIDATION", "Attempted with blank fields by role: ${role ?: "unknown"}")
+                AppLogger.w("PWD_CHANGE_VALIDATION", "Attempted with blank fields by role: ${role ?: "unknown"}")
                 Toast.makeText(this, "Please complete all fields.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (new != confirm) {
-                Log.w("PWD_CHANGE_VALIDATION", "Password mismatch for role: ${role ?: "unknown"}")
+                AppLogger.w("PWD_CHANGE_VALIDATION", "Password mismatch for role: ${role ?: "unknown"}")
                 Toast.makeText(this, "New passwords do not match.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val pwError = getPasswordStrengthError(new)
             if (pwError != null) {
-                Log.w("PWD_CHANGE_VALIDATION", "Weak password rejected for role: ${role ?: "unknown"} -> $pwError")
+                AppLogger.w("PWD_CHANGE_VALIDATION", "Weak password rejected for role: ${role ?: "unknown"} -> $pwError")
                 Toast.makeText(this, pwError, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -106,13 +106,13 @@ class ChangePassword : AppCompatActivity() {
                             .decodeList<Company>().firstOrNull()
 
                         if (company == null || !BCrypt.checkpw(current, company.password)) {
-                            Log.w("PWD_CHANGE_AUTH", "Failed current password check for company ID: $idToCheck")
+                            AppLogger.w("PWD_CHANGE_AUTH", "Failed current password check for company ID: $idToCheck")
                             showFailToast()
                             return@launch
                         }
 
                         if (BCrypt.checkpw(new, company.password)) {
-                            Log.w("PWD_CHANGE_VALIDATION", "Rejected: New password same as old for company ID: $idToCheck")
+                            AppLogger.w("PWD_CHANGE_VALIDATION", "Rejected: New password same as old for company ID: $idToCheck")
                             showReuseWarning()
                             return@launch
                         }
@@ -126,13 +126,13 @@ class ChangePassword : AppCompatActivity() {
                             .decodeList<User>().firstOrNull()
 
                         if (user == null || !BCrypt.checkpw(current, user.password)) {
-                            Log.w("PWD_CHANGE_AUTH", "Failed current password check for company ID: $idToCheck")
+                            AppLogger.w("PWD_CHANGE_AUTH", "Failed current password check for company ID: $idToCheck")
                             showFailToast()
                             return@launch
                         }
 
                         if (BCrypt.checkpw(new, user.password)) {
-                            Log.w("PWD_CHANGE_VALIDATION", "Rejected: New password same as old for company ID: $idToCheck")
+                            AppLogger.w("PWD_CHANGE_VALIDATION", "Rejected: New password same as old for company ID: $idToCheck")
                             showReuseWarning()
                             return@launch
                         }
@@ -211,7 +211,7 @@ class ChangePassword : AppCompatActivity() {
         }
 
         if (!canChange) {
-            Log.w("PWD_CHANGE", "Rejected: Password change cooldown active for $userType ID: $id")
+            AppLogger.w("PWD_CHANGE", "Rejected: Password change cooldown active for $userType ID: $id")
             withContext(Dispatchers.Main) {
                 Toast.makeText(
                     this@ChangePassword,
@@ -225,7 +225,7 @@ class ChangePassword : AppCompatActivity() {
 
 
         if (repo.isPasswordReused(id, userType, newPassword)) {
-            Log.w("PWD_CHANGE", "Rejected: Password reuse detected for $userType ID: $id")
+            AppLogger.w("PWD_CHANGE", "Rejected: Password reuse detected for $userType ID: $id")
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@ChangePassword, "Cannot reuse any of your last 3 passwords.", Toast.LENGTH_LONG).show()
             }
@@ -267,7 +267,7 @@ class ChangePassword : AppCompatActivity() {
             try {
                 repo.pruneOldPasswords(id, userType)
             } catch (e: Exception) {
-                Log.w("PASSWORD_HISTORY", "Failed to prune old passwords: ${e.message}")
+                AppLogger.w("PASSWORD_HISTORY", "Failed to prune old passwords: ${e.message}")
             }
 
             AppLogger.i("PWD_CHANGE", "Password successfully changed for $userType ID: $id")

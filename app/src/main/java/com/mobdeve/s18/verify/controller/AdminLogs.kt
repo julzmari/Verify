@@ -75,6 +75,7 @@ class AdminLogs : BaseActivity() {
         fetchLogs()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun fetchLogs() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -91,7 +92,7 @@ class AdminLogs : BaseActivity() {
                     updateEmptyMessage()
                 }
             } catch (e: Exception) {
-                Log.e("AdminLogs", "Error loading logs: ${e.message}")
+                AppLogger.e("AdminLogs", "Error loading logs: ${e.message}")
             }
         }
     }
