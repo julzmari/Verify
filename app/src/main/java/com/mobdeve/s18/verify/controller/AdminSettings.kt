@@ -10,10 +10,12 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
+import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -63,6 +65,7 @@ class AdminSettings : BaseActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         val app = applicationContext as VerifiApp
         val role = app.authorizedRole
@@ -95,6 +98,10 @@ class AdminSettings : BaseActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, R.id.nav_settings)
 
+        if (role == "admin") {
+            bottomNav.menu.removeItem(R.id.nav_logs)
+        }
+
         changePic.setOnClickListener { checkAndRequestPermission() }
         changePass.setOnClickListener { startActivity(Intent(this, ChangePassword::class.java)) }
         logout.setOnClickListener {
@@ -111,6 +118,7 @@ class AdminSettings : BaseActivity() {
 
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun fetchCompanyDetails(companyId: String) {
         val supabase = (application as VerifiApp).supabase
         val json = Json { ignoreUnknownKeys = true }

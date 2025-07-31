@@ -65,6 +65,10 @@ class SubmissionHistory : BaseActivity() {
         }
         setupBottomNavigation(bottomNavbar, R.id.nav_history)
 
+        if (role == "admin") {
+            bottomNavbar.menu.removeItem(R.id.nav_logs)
+        }
+
         recyclerView = findViewById(R.id.submission_history_recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
 

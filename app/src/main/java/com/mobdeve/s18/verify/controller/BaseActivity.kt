@@ -53,7 +53,7 @@ open class BaseActivity : AppCompatActivity() {
                 }
 
                 R.id.nav_logs -> {
-                    if (role != "worker") {
+                    if (role == "owner") {
                         Intent(this, AdminLogs::class.java)
                     } else return@setOnItemSelectedListener false
                 }

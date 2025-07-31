@@ -100,6 +100,12 @@ class ManageUser : BaseActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, R.id.nav_users)
+
+        val role = app.authorizedRole
+
+        if (role == "admin") {
+            bottomNav.menu.removeItem(R.id.nav_logs)
+        }
     }
 
 

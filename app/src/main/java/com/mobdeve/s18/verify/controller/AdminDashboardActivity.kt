@@ -32,6 +32,7 @@ class AdminDashboardActivity : BaseActivity() {
     private lateinit var emptyMessageText: TextView
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -50,6 +51,13 @@ class AdminDashboardActivity : BaseActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, R.id.nav_home)
+
+        val app = applicationContext as VerifiApp
+        val role = app.authorizedRole
+
+        if (role == "admin") {
+            bottomNav.menu.removeItem(R.id.nav_logs)
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)

@@ -1,11 +1,13 @@
 package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.app.VerifiApp
@@ -67,6 +69,7 @@ class VerifyCodeActivity : AppCompatActivity() {
                 }
             }
 
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string()
                 AppLogger.d("VERIFY", "Status: ${response.code}, Body: $body")
