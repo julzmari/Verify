@@ -1,10 +1,12 @@
 package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.util.Patterns
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.edit
@@ -36,6 +38,7 @@ class Login : AppCompatActivity() {
     private lateinit var forgotPasswordText: TextView
     private lateinit var rememberedAccounts: MutableList<RememberedAccount>
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
@@ -90,17 +93,17 @@ class Login : AppCompatActivity() {
         loginButton.setOnClickListener {
             val email = emailEditText.text.toString().trim().lowercase()
             val password = passwordEditText.text.toString()
-            Log.d("LOGIN", "Trying email: $email")
+            AppLogger.d("LOGIN", "Trying email: $email")
 
 
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || email.length > 100) {
-                Log.w("Validation", "Login failed: Invalid email format or too long -> $email")
+                AppLogger.w("Validation", "Login failed: Invalid email format or too long -> $email")
                 Toast.makeText(this@Login, "Please enter a valid email address", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (password.length < 8 || password.length > 50) {
-                Log.w("Validation", "Login failed: Password length invalid for $email")
+                AppLogger.w("Validation", "Login failed: Password length invalid for $email")
                 Toast.makeText(this@Login, "Password must be 8 to 50 characters", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -111,12 +114,13 @@ class Login : AppCompatActivity() {
                 }
             } else {
                 loginUser(email, password)
-                Log.d("LOGIN", "Trying email: $email password: $password" )
+                AppLogger.d("LOGIN", "Trying email: $email password: $password" )
 
             }
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun loginUser(email: String, password: String) {
         val supabase = (application as VerifiApp).supabase
         val json = Json { ignoreUnknownKeys = true }
@@ -141,14 +145,14 @@ class Login : AppCompatActivity() {
                 if (company != null) {
                     if (!company.isActive) {
                         withContext(Dispatchers.Main) {
-                            Log.w("Auth", "Login blocked: Company $email is deactivated")
+                            AppLogger.w("Auth", "Login blocked: Company $email is deactivated")
                             Toast.makeText(this@Login, "Company account is deactivated", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
                     }
 
                     if (BCrypt.checkpw(password, company.password)) {
-                        Log.i("Auth", "Login success: Company owner $email")
+                        AppLogger.i("Auth", "Login success: Company owner $email")
                         supabase.postgrest.from("companies").update(
                             mapOf("last_login" to kotlinx.datetime.Clock.System.now().toString())
                         ) {
@@ -169,7 +173,7 @@ class Login : AppCompatActivity() {
 
                         return@launch
                     } else {
-                        Log.w("Auth", "Login failed: Incorrect password for company $email (Attempt ${currentAttempts + 1})")
+                        AppLogger.w("Auth", "Login failed: Incorrect password for company $email (Attempt ${currentAttempts + 1})")
                         supabase.postgrest.from("companies").update(
                             mapOf("last_failed_login" to kotlinx.datetime.Clock.System.now().toString())
                         ) {
@@ -217,7 +221,7 @@ class Login : AppCompatActivity() {
                 if (user != null) {
                     if (!user.isActive) {
                         withContext(Dispatchers.Main) {
-                            Log.w("Auth", "Login blocked: User $email is deactivated")
+                            AppLogger.w("Auth", "Login blocked: User $email is deactivated")
                             Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
@@ -227,7 +231,7 @@ class Login : AppCompatActivity() {
                     val currentUserAttempts = prefs.getInt(userAttemptKey, 0)
 
                     if (BCrypt.checkpw(password, user.password)) {
-                        Log.i("Auth", "Login success: ${user.role} $email")
+                        AppLogger.i("Auth", "Login success: ${user.role} $email")
 
                         supabase.postgrest.from("users").update(
                             mapOf("last_login" to kotlinx.datetime.Clock.System.now().toString())
@@ -266,7 +270,7 @@ class Login : AppCompatActivity() {
                         }
                         return@launch
                     } else {
-                        Log.w("Auth", "Login failed: Incorrect password for user $email (Attempt ${currentUserAttempts + 1})")
+                        AppLogger.w("Auth", "Login failed: Incorrect password for user $email (Attempt ${currentUserAttempts + 1})")
 
                         val newAttempts = currentUserAttempts + 1
 
@@ -288,7 +292,7 @@ class Login : AppCompatActivity() {
                                 Toast.makeText(this@Login, "Account is deactivated", Toast.LENGTH_SHORT).show()
                             }
                         } else {
-                            Log.w("Auth", "Login failed: No account found for $email")
+                            AppLogger.w("Auth", "Login failed: No account found for $email")
                             prefs.edit().putInt(userAttemptKey, newAttempts).apply()
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(
@@ -307,7 +311,7 @@ class Login : AppCompatActivity() {
                 }
 
             } catch (e: Exception) {
-                Log.e("LOGIN_DEBUG", "Login error: ${e.message}")
+                AppLogger.e("LOGIN_DEBUG", "Login error: ${e.message}")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Login, "Login error: ${e.message}", Toast.LENGTH_LONG).show()
                 }

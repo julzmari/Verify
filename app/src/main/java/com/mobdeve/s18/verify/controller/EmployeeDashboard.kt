@@ -37,13 +37,14 @@ class EmployeeDashboard : BaseActivity() {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var captureButton: Button
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
         if (isGranted) {
             getCurrentLocation()
         } else {
-            Log.e("Location", "Permission denied")
+            AppLogger.e("Location", "Permission denied")
         }
     }
 
@@ -55,8 +56,6 @@ class EmployeeDashboard : BaseActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_employeedashboard)
-        Log.i("EmployeeDashboard", "onCreate started")
-
 
         welcomeText = findViewById(R.id.welcomeText)
         submissionCount = findViewById(R.id.submissionCount)
@@ -64,15 +63,15 @@ class EmployeeDashboard : BaseActivity() {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         locationPermissionRequest.launch(Manifest.permission.ACCESS_FINE_LOCATION)
-        Log.d("EmployeeDashboard", "Requested location permission")
+        AppLogger.d("EmployeeDashboard", "Requested location permission")
 
         cameraLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
             if (it.resultCode == RESULT_OK) {
-                Log.i("EmployeeDashboard", "Camera activity returned RESULT_OK, refreshing dashboard")
+                AppLogger.i("EmployeeDashboard", "Camera activity returned RESULT_OK, refreshing dashboard")
                 fetchUserData() // refresh dashboard if submission succeeded
 
             }else{
-                Log.w("EmployeeDashboard", "Camera activity canceled or failed")
+                AppLogger.w("EmployeeDashboard", "Camera activity canceled or failed")
             }
         }
 
@@ -80,7 +79,7 @@ class EmployeeDashboard : BaseActivity() {
 
         captureButton = findViewById(R.id.captureBtnDashboard)
         captureButton.setOnClickListener {
-            Log.i("EmployeeDashboard", "Capture button clicked, launching camera")
+            AppLogger.i("EmployeeDashboard", "Capture button clicked, launching camera")
             val intent = Intent(this, UserCamera::class.java)
             cameraLauncher.launch(intent)
         }
@@ -98,7 +97,7 @@ class EmployeeDashboard : BaseActivity() {
                 val employeeID = app.employeeID
 
                 if (employeeID.isNullOrEmpty()) {
-                    Log.e("EmployeeDashboard", "EmployeeID missing! Redirecting to login.")
+                    AppLogger.e("EmployeeDashboard", "EmployeeID missing! Redirecting to login.")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@EmployeeDashboard, "Unauthorized access. Please login again.", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@EmployeeDashboard, Login::class.java))
@@ -106,14 +105,14 @@ class EmployeeDashboard : BaseActivity() {
                     }
                     return@launch
                 }
-                Log.d("EmployeeDashboard", "Fetching user info for employeeID=$employeeID")
+                AppLogger.d("EmployeeDashboard", "Fetching user info for employeeID=$employeeID")
                 val userResponse = supabase.postgrest["users?id=eq.$employeeID"].select()
                 val user = userResponse.decodeList<User>().firstOrNull()
                 if (user != null) {
-                    Log.i("Dashboard", "Successfully fetched user ${user.email}")
+                    AppLogger.i("Dashboard", "Successfully fetched user ${user.email}")
                     app.username = user.name
                 } else {
-                    Log.w("Dashboard", "User not found for employeeID $employeeID")
+                    AppLogger.w("Dashboard", "User not found for employeeID $employeeID")
                 }
 
 
@@ -121,13 +120,13 @@ class EmployeeDashboard : BaseActivity() {
                 val startOfDay = today.atStartOfDay().toString()
                 val endOfDay = today.plusDays(1).atStartOfDay().toString()
 
-                Log.d("EmployeeDashboard", "Querying submissions for today ($startOfDay to $endOfDay)")
+                AppLogger.d("EmployeeDashboard", "Querying submissions for today ($startOfDay to $endOfDay)")
 
                 val response = supabase.postgrest["photos?user_id=eq.$employeeID&datetime=gte.$startOfDay&datetime=lt.$endOfDay"]
                     .select()
 
                 val submissionTodayCount = response.decodeList<UserEntry>().size
-                Log.i("Dashboard", "Fetched $submissionTodayCount submissions for today.")
+                AppLogger.i("Dashboard", "Fetched $submissionTodayCount submissions for today.")
 
 
                 withContext(Dispatchers.Main) {
@@ -136,7 +135,7 @@ class EmployeeDashboard : BaseActivity() {
                 }
 
             } catch (e: Exception) {
-                Log.e("Supabase", "Error fetching user/submissions: ${e.message}")
+                AppLogger.e("Supabase", "Error fetching user/submissions: ${e.message}")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@EmployeeDashboard, "An error occurred while fetching your data.", Toast.LENGTH_SHORT).show()
                 }
@@ -144,6 +143,7 @@ class EmployeeDashboard : BaseActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("MissingPermission")
     private fun getCurrentLocation() {
         val app = applicationContext as VerifiApp
@@ -152,10 +152,10 @@ class EmployeeDashboard : BaseActivity() {
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     if (location.latitude !in -90.0..90.0 || location.longitude !in -180.0..180.0) {
-                        Log.e("Location", "Invalid coordinates")
+                        AppLogger.e("Location", "Invalid coordinates")
                         return@addOnSuccessListener
                     }
-                    Log.i("Location", "Successfully retrieved location: ${location.latitude}, ${location.longitude}")
+                    AppLogger.i("Location", "Successfully retrieved location: ${location.latitude}, ${location.longitude}")
 
 
                     val geocoder = Geocoder(this)
@@ -167,18 +167,18 @@ class EmployeeDashboard : BaseActivity() {
                         currentLocation.text = safeLocationName
                         app.location = safeLocationName
                     } catch (e: Exception) {
-                        Log.e("Location", "Geocoder error: ${e.message}")
+                        AppLogger.e("Location", "Geocoder error: ${e.message}")
                         currentLocation.text = "Unable to fetch location"
                     }
 
                     app.longitude = location.longitude
                     app.latitude = location.latitude
                 } else {
-                    Log.e("Location", "Location is null")
+                    AppLogger.e("Location", "Location is null")
                 }
             }
             .addOnFailureListener {
-                Log.e("Location", "Error getting location: ${it.message}")
+                AppLogger.e("Location", "Error getting location: ${it.message}")
             }
     }
 }

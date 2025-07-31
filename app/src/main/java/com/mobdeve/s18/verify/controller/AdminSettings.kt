@@ -48,7 +48,7 @@ class AdminSettings : BaseActivity() {
             selectedImageUri?.let { uri ->
                 if (uri.scheme != "content" && uri.scheme != "file") {
                     Toast.makeText(this, "Invalid image source", Toast.LENGTH_SHORT).show()
-                    Log.w("IMAGE_SECURITY", "Rejected URI with scheme: ${uri.scheme}")
+                    AppLogger.w("IMAGE_SECURITY", "Rejected URI with scheme: ${uri.scheme}")
                     return@let
                 }
 
@@ -68,7 +68,7 @@ class AdminSettings : BaseActivity() {
         val role = app.authorizedRole
 
         if (role != "admin" && role != "owner") {
-            Log.w("ACCESS_CONTROL", "Unauthorized role tried to access AdminSettings: $role")
+            AppLogger.w("ACCESS_CONTROL", "Unauthorized role tried to access AdminSettings: $role")
             Toast.makeText(this, "Access denied. Redirecting to homepage...", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, Homepage::class.java))
             finish()
@@ -167,7 +167,7 @@ class AdminSettings : BaseActivity() {
                 }
 
             } catch (e: Exception) {
-                Log.e("FETCH_ERROR", "Company fetch error", e)
+                AppLogger.w("FETCH_ERROR", "Company fetch error $e")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@AdminSettings, "Something went wrong. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
@@ -250,7 +250,7 @@ class AdminSettings : BaseActivity() {
                 }
 
             } catch (e: Exception) {
-                Log.e("FETCH_ERROR", "User fetch error", e)
+                AppLogger.w("FETCH_ERROR", "User fetch error $e")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@AdminSettings, "Something went wrong. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
@@ -281,9 +281,9 @@ class AdminSettings : BaseActivity() {
                     }
                 }
 
-                Log.i("PROFILE_UPDATE", "Profile image successfully updated for role: $role")
+                AppLogger.w("PROFILE_UPDATE", "Profile image successfully updated for role: $role")
             } catch (e: Exception) {
-                Log.e("UPDATE_ERROR", "Profile URL update failed", e)
+                AppLogger.w("UPDATE_ERROR", "Profile URL update failed $e")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@AdminSettings, "Failed to update profile picture. Try again later.", Toast.LENGTH_SHORT).show()
                 }
@@ -315,7 +315,7 @@ class AdminSettings : BaseActivity() {
         if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             openImagePicker()
         } else {
-            Log.w("PERMISSION", "Storage permission denied by user.")
+            AppLogger.w("PERMISSION", "Storage permission denied by user.")
             Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }

@@ -2,6 +2,7 @@ package com.mobdeve.s18.verify.controller
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.util.Patterns
 import android.widget.*
@@ -18,6 +19,7 @@ import java.util.*
 import android.text.TextWatcher
 import android.text.Editable
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.mobdeve.s18.verify.repository.insertPasswordHistoryWithRetry
 import com.nulabinc.zxcvbn.Zxcvbn
@@ -27,6 +29,7 @@ class AddUser : BaseActivity() {
     private lateinit var passwordStrengthBar: ProgressBar
     private lateinit var passwordStrengthLabel: TextView
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_add_user)
@@ -80,39 +83,39 @@ class AddUser : BaseActivity() {
                 "Admin" -> "admin"
                 "Regular Worker" -> "reg_employee"
                 else -> {
-                    Log.w("Validation", "AddUser failed: One or more fields were empty.")
+                    AppLogger.w("Validation", "AddUser failed: One or more fields were empty.")
                     Toast.makeText(this, "Invalid role selected", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
             }
 
             if (name.isBlank() || email.isBlank() || password.isBlank() || confirmPassword.isBlank()) {
-                Log.w("Validation", "AddUser failed: Feilds incomplete. Name=$name")
+                AppLogger.w("Validation", "AddUser failed: Feilds incomplete. Name=$name")
                 Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (name.length > 100) {
-                Log.w("Validation", "AddUser failed: Name exceeds 100 characters. Name=$name")
+                AppLogger.w("Validation", "AddUser failed: Name exceeds 100 characters. Name=$name")
                 Toast.makeText(this, "Name is too long", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || email.length > 100) {
-                Log.w("Validation", "AddUser failed: Invalid email $email")
+                AppLogger.w("Validation", "AddUser failed: Invalid email $email")
                 Toast.makeText(this, "Invalid email address", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             val pwError = getPasswordStrengthError(password)
             if (pwError != null) {
-                Log.w("Validation", "AddUser failed: Password validation error -> $pwError")
+                AppLogger.w("Validation", "AddUser failed: Password validation error -> $pwError")
                 Toast.makeText(this, pwError, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
             if (password != confirmPassword) {
-                Log.w("Validation", "AddUser failed: Passwords do not match")
+                AppLogger.w("Validation", "AddUser failed: Passwords do not match")
                 Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -121,7 +124,7 @@ class AddUser : BaseActivity() {
             val companyID = app.companyID
 
             if (companyID == null) {
-                Log.w("Validation", "AddUser failed: Company ID is missing!")
+                AppLogger.w("Validation", "AddUser failed: Company ID is missing!")
                 Toast.makeText(this, "Company ID is missing!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -143,7 +146,7 @@ class AddUser : BaseActivity() {
 
                     if (companyEmailCheck.isNotEmpty() || userEmailCheck.isNotEmpty()) {
                         withContext(Dispatchers.Main) {
-                            Log.w("Validation", "AddUser failed: Email $email")
+                            AppLogger.w("Validation", "AddUser failed: Email $email")
                             Toast.makeText(this@AddUser, "Unable to add user. Please try again.", Toast.LENGTH_SHORT).show()
                         }
                         return@launch
@@ -174,7 +177,7 @@ class AddUser : BaseActivity() {
                         supabase.postgrest["users"].delete { eq("id", newUserId) }
 
                         withContext(Dispatchers.Main) {
-                            Log.w("Validation", "Failed to add user. Rolled back.")
+                            AppLogger.w("Validation", "Failed to add user. Rolled back.")
                             Toast.makeText(this@AddUser, "Failed to add user. Rolled back.", Toast.LENGTH_LONG).show()
                         }
                         return@launch
@@ -182,7 +185,7 @@ class AddUser : BaseActivity() {
 
                     // 5. Success
                     withContext(Dispatchers.Main) {
-                        Log.i("Add User", "Successfully added user")
+                        AppLogger.i("Add User", "Successfully added user")
                         Toast.makeText(this@AddUser, "User added successfully!", Toast.LENGTH_SHORT).show()
                         startActivity(Intent(this@AddUser, ManageUser::class.java))
                         finish()
@@ -190,7 +193,7 @@ class AddUser : BaseActivity() {
 
                 } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
-                        Log.w("Add User", "Failed to add user.")
+                        AppLogger.w("Add User", "Failed to add user.")
                         Toast.makeText(this@AddUser, "Failed to add user. Try again later.", Toast.LENGTH_LONG).show()
                     }
                 }

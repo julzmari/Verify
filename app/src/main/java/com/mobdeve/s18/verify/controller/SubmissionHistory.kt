@@ -95,7 +95,7 @@ class SubmissionHistory : BaseActivity() {
                     recyclerView.adapter = UserEntryAdapter(userEntriesFiltered) { }
                 }
             } catch (e: Exception) {
-                Log.e("Supabase", "Error fetching user/submissions: ${e.message}")
+                AppLogger.e("Supabase", "Error fetching user/submissions: ${e.message}")
             }
         }
 
@@ -281,7 +281,7 @@ class SubmissionHistory : BaseActivity() {
             val dateTime = LocalDateTime.parse(supabaseDateTime, supabaseFormat)
             DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm a").format(dateTime)
         } catch (e: Exception) {
-            Log.e("DateFormat", "Error formatting date: $supabaseDateTime", e)
+            AppLogger.e("DateFormat", "Error formatting date: $supabaseDateTime ${e.message}")
             "Invalid date"
         }
     }

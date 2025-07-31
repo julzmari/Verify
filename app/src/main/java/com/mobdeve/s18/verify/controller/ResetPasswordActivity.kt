@@ -1,11 +1,13 @@
 package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +36,7 @@ class ResetPasswordActivity : AppCompatActivity() {
     private lateinit var app: VerifiApp
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reset_password)
@@ -134,6 +137,7 @@ class ResetPasswordActivity : AppCompatActivity() {
 
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun updatePassword(table: String, id: String, newPassword: String, oldPassword: String) {
         val supabase = app.supabase
         val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
@@ -165,7 +169,7 @@ class ResetPasswordActivity : AppCompatActivity() {
             try {
                 repo.pruneOldPasswords(id, "user")
             } catch (e: Exception) {
-                Log.w("PASSWORD_HISTORY", "Pruning failed: ${e.message}")
+                AppLogger.w("PASSWORD_HISTORY", "Pruning failed: ${e.message}")
             }
 
             withContext(Dispatchers.Main) {
@@ -184,6 +188,7 @@ class ResetPasswordActivity : AppCompatActivity() {
 
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun updateCompanyPasswordAndActivate(id: String, newPassword: String, oldPassword: String, isActive: Boolean) {
         val supabase = app.supabase
         val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
@@ -231,7 +236,7 @@ class ResetPasswordActivity : AppCompatActivity() {
             try {
                 repo.pruneOldPasswords(id, "company")
             } catch (e: Exception) {
-                Log.w("PASSWORD_HISTORY", "Pruning failed: ${e.message}")
+                AppLogger.w("PASSWORD_HISTORY", "Pruning failed: ${e.message}")
             }
 
             withContext(Dispatchers.Main) {

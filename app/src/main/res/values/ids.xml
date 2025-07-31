@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="log_history_label" type="id" />
+    <item name="searchInput_loghistory" type="id" />
+    <item name="emptyLogMessageText" type="id" />
+    <item name="log_recyclerView" type="id" />
+    <item name="logSortLabel" type="id" />
+    <item name="logSortAscending" type="id" />
+    <item name="logSortDescending" type="id" />
+    <item name="logFromDateLabel" type="id" />
+    <item name="logSelectFromDateBtn" type="id" />
+    <item name="logSelectedFromDateText" type="id" />
+    <item name="logToDateLabel" type="id" />
+    <item name="logSelectToDateBtn" type="id" />
+    <item name="logSelectedToDateText" type="id" />
+    <item name="logClearBtn" type="id" />
+    <item name="logCancelBtn" type="id" />
+    <item name="logSubmitBtn" type="id" />
+</resources>

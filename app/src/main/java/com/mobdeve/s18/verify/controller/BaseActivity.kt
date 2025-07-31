@@ -52,6 +52,12 @@ open class BaseActivity : AppCompatActivity() {
                     } else return@setOnItemSelectedListener false
                 }
 
+                R.id.nav_logs -> {
+                    if (role != "worker") {
+                        Intent(this, AdminLogs::class.java)
+                    } else return@setOnItemSelectedListener false
+                }
+
                 R.id.nav_settings -> {
                     if (currentItemId == R.id.nav_settings) return@setOnItemSelectedListener true
                     when (role) {

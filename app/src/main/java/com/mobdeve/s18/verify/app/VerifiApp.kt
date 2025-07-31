@@ -17,8 +17,14 @@ class VerifiApp : Application() {
     var longitude: Double? = null
     var authorizedRole: String? = null //owner, admin, worker
 
+    companion object {
+        lateinit var instance: VerifiApp
+            private set
+    }
+
     override fun onCreate() {
         super.onCreate()
+        instance = this
         supabase = createSupabaseClient(
             supabaseUrl = "https://lkjkgesqyrjodxzujkgg.supabase.co",
             supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxramtnZXNxeXJqb2R4enVqa2dnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI0OTA4NzgsImV4cCI6MjA2ODA2Njg3OH0.adifn-tLWzDD8moDdjHaXHJGkMEpePgfeGVv9bFVcEI"

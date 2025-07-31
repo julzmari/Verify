@@ -1,6 +1,7 @@
 package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,6 +16,7 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Spinner
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
@@ -40,6 +42,7 @@ class ManageUser : BaseActivity() {
 
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_manage_users)
@@ -101,6 +104,7 @@ class ManageUser : BaseActivity() {
 
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun showUpdateUserDialog(user: User) {
         val dialogView = layoutInflater.inflate(R.layout.popup_edit_user, null)
 
@@ -243,7 +247,7 @@ class ManageUser : BaseActivity() {
                         }
                     }
                 } catch (e: Exception) {
-                    Log.e("UpdateUser", "Exception: ${e.message}", e)
+                    AppLogger.e("UpdateUser", "Exception: ${e.message}")
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@ManageUser, "Something went wrong", Toast.LENGTH_SHORT).show()
                     }
@@ -255,6 +259,7 @@ class ManageUser : BaseActivity() {
 
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun fetchUsersFromSupabase() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -269,7 +274,7 @@ class ManageUser : BaseActivity() {
                 .decodeList<User>()
 
 
-                Log.d("ManageUser", "Fetched ${allUsers.size} users from Supabase")
+                AppLogger.d("ManageUser", "Fetched ${allUsers.size} users from Supabase")
 
 
                 val filteredUsers = when (userRole) {
@@ -277,7 +282,7 @@ class ManageUser : BaseActivity() {
                     "admin" -> allUsers.filter { it.role == "reg_employee" }
                     else -> emptyList()
                 }
-                Log.d("ManageUser", "Filtered users: ${filteredUsers.size}")
+                AppLogger.d("ManageUser", "Filtered users: ${filteredUsers.size}")
 
 
                 withContext(Dispatchers.Main) {

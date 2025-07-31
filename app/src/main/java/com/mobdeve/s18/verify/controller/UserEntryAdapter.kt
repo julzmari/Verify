@@ -85,7 +85,7 @@ class UserEntryAdapter(
                 val outputFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm a", Locale.getDefault())
                 return dateTime.format(outputFormat)
             } catch (e: Exception) {
-                Log.e("DateFormatError", "Error parsing or formatting the date: ${e.message}")
+                AppLogger.e("DateFormatError", "Error parsing or formatting the date: ${e.message}")
                 return "Invalid date"
             }
         }

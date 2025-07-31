@@ -45,6 +45,7 @@ class UserCamera : AppCompatActivity() {
     private var isBackCamera = true
     private lateinit var currentTime: String
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_employee_cameraview)
@@ -79,6 +80,7 @@ class UserCamera : AppCompatActivity() {
         startCamera()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
@@ -112,7 +114,7 @@ class UserCamera : AppCompatActivity() {
                     this, cameraSelector, preview, imageCapture
                 )
             } catch (e: Exception) {
-                Log.e("UserCamera", "Use case binding failed", e)
+                AppLogger.e("UserCamera", "Use case binding failed")
             }
         }, ContextCompat.getMainExecutor(this))
     }
@@ -250,7 +252,7 @@ class UserCamera : AppCompatActivity() {
             }
 
         } catch (e: Exception) {
-            Log.e("UploadError", "Failed to upload image: ${e.message}")
+            AppLogger.e("UploadError", "Failed to upload image: ${e.message}")
             throw e
         }
     }

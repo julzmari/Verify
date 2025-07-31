@@ -46,7 +46,7 @@ class Settings : BaseActivity() {
             selectedImageUri?.let { uri ->
                 if (uri.scheme != "content" && uri.scheme != "file") {
                     Toast.makeText(this, "Invalid image source", Toast.LENGTH_SHORT).show()
-                    Log.w("SECURITY_IMAGE", "Rejected image URI with unsupported scheme: ${uri.scheme}")
+                    AppLogger.w("SECURITY_IMAGE", "Rejected image URI with unsupported scheme: ${uri.scheme}")
                     return@let
                 }
 
@@ -73,7 +73,7 @@ class Settings : BaseActivity() {
         currentUserId = app.employeeID
 
         if (currentUserId.isNullOrEmpty()) {
-            Log.w("SECURITY_ACCESS", "Access attempt with null employee ID")
+            AppLogger.w("SECURITY_ACCESS", "Access attempt with null employee ID")
             Toast.makeText(this, "Access denied. Please log in again.", Toast.LENGTH_SHORT).show()
             finish()
             return
@@ -163,11 +163,11 @@ class Settings : BaseActivity() {
 
 
                 } ?: run {
-                    Log.w("FETCH_USER", "No user found for ID: $userId")
+                    AppLogger.w("FETCH_USER", "No user found for ID: $userId")
                 }
 
             } catch (e: Exception) {
-                Log.e("FETCH_USER_ERROR", "Exception during user/company fetch", e)
+                AppLogger.e("FETCH_USER_ERROR", "Exception during user/company fetch ${e.message}")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Settings, "Something went wrong. Please try again later.", Toast.LENGTH_SHORT).show()
                 }
@@ -205,7 +205,7 @@ class Settings : BaseActivity() {
                     eq("id", userId)
                 }
             } catch (e: Exception) {
-                Log.e("UPDATE_PROFILE_URL", "Failed to update profile URL", e)
+                AppLogger.e("UPDATE_PROFILE_URL", "Failed to update profile URL ${e.message}")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Settings, "Failed to update profile picture. Try again later.", Toast.LENGTH_SHORT).show()
                 }
@@ -237,7 +237,7 @@ class Settings : BaseActivity() {
         if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             openImagePicker()
         } else {
-            Log.w("PERMISSION_DENIED", "User denied image read permission")
+            AppLogger.w("PERMISSION_DENIED", "User denied image read permission")
             Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
         }
     }

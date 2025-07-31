@@ -69,7 +69,7 @@ class VerifyCodeActivity : AppCompatActivity() {
 
             override fun onResponse(call: Call, response: Response) {
                 val body = response.body?.string()
-                Log.d("VERIFY", "Status: ${response.code}, Body: $body")
+                AppLogger.d("VERIFY", "Status: ${response.code}, Body: $body")
 
                 runOnUiThread {
                     if (response.isSuccessful) {

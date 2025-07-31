@@ -1,11 +1,13 @@
 package com.mobdeve.s18.verify.controller
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
 import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.mobdeve.s18.verify.R
@@ -34,6 +36,7 @@ class ChangePassword : AppCompatActivity() {
     private lateinit var submitButton: Button
     private lateinit var discardButton: Button
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_changepassword)
@@ -190,6 +193,7 @@ class ChangePassword : AppCompatActivity() {
         )
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun updatePassword(table: String, id: String, newPassword: String, oldPassword: String) {
         val supabase = app.supabase
         val hashedNew = BCrypt.hashpw(newPassword, BCrypt.gensalt())
@@ -197,12 +201,12 @@ class ChangePassword : AppCompatActivity() {
 
 
         val userType = if (table == "companies") "company" else "user"
-        Log.i("PWD_CHANGE", "Attempting password change for $userType ID: $id")
+        AppLogger.i("PWD_CHANGE", "Attempting password change for $userType ID: $id")
 
         val canChange = try {
             repo.isPasswordChangeAllowed(id, userType)
         } catch (e: Exception) {
-            Log.e("PASSWORD_HISTORY", "Check failed: ${e.message}", e)
+            AppLogger.i("PASSWORD_HISTORY", "Check failed: ${e.message}")
             false
         }
 
@@ -244,7 +248,7 @@ class ChangePassword : AppCompatActivity() {
                 userType = userType)
 
             if (!historyInserted) {
-                Log.e("PWD_CHANGE", "Failed to insert history; rolling back for $userType ID: $id")
+                AppLogger.i("PWD_CHANGE", "Failed to insert history; rolling back for $userType ID: $id")
 
                 supabase.postgrest[table].update(mapOf("password" to oldPassword)) {
                         eq("id", id)
@@ -266,7 +270,7 @@ class ChangePassword : AppCompatActivity() {
                 Log.w("PASSWORD_HISTORY", "Failed to prune old passwords: ${e.message}")
             }
 
-            Log.i("PWD_CHANGE", "Password successfully changed for $userType ID: $id")
+            AppLogger.i("PWD_CHANGE", "Password successfully changed for $userType ID: $id")
 
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@ChangePassword, "Password changed successfully.", Toast.LENGTH_SHORT).show()
@@ -274,7 +278,7 @@ class ChangePassword : AppCompatActivity() {
             }
 
         } catch (e: Exception) {
-            Log.e("PWD_CHANGE", "Password change failed for $userType ID: $id. Rolling back. ${e.message}", e)
+            AppLogger.i("PWD_CHANGE", "Password change failed for $userType ID: $id. Rolling back. ${e.message}")
             supabase.postgrest[table].update(mapOf("password" to oldPassword)) {
                     eq("id", id)
                 }

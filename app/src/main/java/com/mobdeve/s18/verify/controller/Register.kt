@@ -2,6 +2,7 @@ package com.mobdeve.s18.verify.controller
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.util.Log
@@ -19,6 +20,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import com.nulabinc.zxcvbn.Zxcvbn
 import android.text.TextWatcher
+import androidx.annotation.RequiresApi
 import com.mobdeve.s18.verify.model.Company
 import com.mobdeve.s18.verify.repository.insertPasswordHistoryWithRetry
 import io.github.jan.supabase.SupabaseClient
@@ -38,6 +40,7 @@ class Register : AppCompatActivity() {
     private lateinit var passwordStrengthLabel: TextView
 
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
@@ -109,6 +112,7 @@ class Register : AppCompatActivity() {
         return null
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun registerCompany() {
         val name = nameInput.text.toString().trim()
         val email = emailInput.text.toString().trim().lowercase()
@@ -117,32 +121,32 @@ class Register : AppCompatActivity() {
 
         if (name.isEmpty() || email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty()) {
             Toast.makeText(this, "Please fill all fields.", Toast.LENGTH_SHORT).show()
-            Log.w("REGISTER_VALIDATION", "Empty input field.")
+            AppLogger.w("REGISTER_VALIDATION", "Empty input field.")
             return
         }
 
         if (name.length > 100) {
             Toast.makeText(this, "Name is too long.", Toast.LENGTH_SHORT).show()
-            Log.w("REGISTER_VALIDATION", "Name exceeds length.")
+            AppLogger.w("REGISTER_VALIDATION", "Name exceeds length.")
             return
         }
 
         if (!Patterns.EMAIL_ADDRESS.matcher(email).matches() || email.length > 100) {
             Toast.makeText(this, "Please enter a valid email address.", Toast.LENGTH_SHORT).show()
-            Log.w("REGISTER_VALIDATION", "Invalid email format or length.")
+            AppLogger.w("REGISTER_VALIDATION", "Invalid email format or length.")
             return
         }
 
         val pwError = getPasswordStrengthError(password)
         if (pwError != null) {
             Toast.makeText(this, pwError, Toast.LENGTH_SHORT).show()
-            Log.w("REGISTER_VALIDATION", "Password failed strength check.")
+            AppLogger.w("REGISTER_VALIDATION", "Password failed strength check.")
             return
         }
 
         if (password != confirmPassword) {
             Toast.makeText(this, "Passwords do not match.", Toast.LENGTH_SHORT).show()
-            Log.w("REGISTER_VALIDATION", "Password mismatch.")
+            AppLogger.w("REGISTER_VALIDATION", "Password mismatch.")
             return
         }
 
@@ -166,7 +170,7 @@ class Register : AppCompatActivity() {
                     withContext(Dispatchers.Main) {
                         Toast.makeText(this@Register, "Registration failed. Email already used.", Toast.LENGTH_SHORT).show()
                     }
-                    Log.w("REGISTER_ATTEMPT", "Email already used: $email")
+                    AppLogger.w("REGISTER_ATTEMPT", "Email already used: $email")
                     return@launch
                 }
 
@@ -187,7 +191,7 @@ class Register : AppCompatActivity() {
 
                 if (!success) {
                     // Rollback: delete the company if history insert failed
-                    Log.e("REGISTER_ROLLBACK", "Deleting company ${insertedCompany.id} due to password_history failure.")
+                    AppLogger.e("REGISTER_ROLLBACK", "Deleting company ${insertedCompany.id} due to password_history failure.")
                     supabase.postgrest["companies"].delete { eq("id", insertedCompany.id) }
 
                     withContext(Dispatchers.Main) {
@@ -199,13 +203,13 @@ class Register : AppCompatActivity() {
                 // --- Registration successful ---
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Register, "Company registered!", Toast.LENGTH_SHORT).show()
-                    Log.i("REGISTER_ATTEMPT", "New company registered: $email")
+                    AppLogger.i("REGISTER_ATTEMPT", "New company registered: $email")
                     startActivity(Intent(this@Register, Login::class.java))
                     finish()
                 }
 
             } catch (e: Exception) {
-                Log.e("REGISTER_ERROR", "Error during registration", e)
+                AppLogger.e("REGISTER_ERROR", "Error during registration ${e.message}")
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@Register, "Registration failed. Please try again later.", Toast.LENGTH_LONG).show()
                 }

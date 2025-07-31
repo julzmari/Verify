@@ -1,9 +1,11 @@
 package com.mobdeve.s18.verify.controller
 
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import org.osmdroid.config.Configuration
@@ -50,6 +52,7 @@ class AdminDashboardActivity : BaseActivity() {
         setupBottomNavigation(bottomNav, R.id.nav_home)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun fetchUserData() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -126,7 +129,7 @@ class AdminDashboardActivity : BaseActivity() {
                     }
                 }
             } catch (e: Exception) {
-                Log.e("AdminDashboard", "Error fetching user data", e)
+                AppLogger.e("AdminDashboard", "Error fetching user data")
             }
         }
     }

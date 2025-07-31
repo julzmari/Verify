@@ -3,6 +3,7 @@ package com.mobdeve.s18.verify.controller
 import android.content.Context
 import android.content.res.ColorStateList
 import android.graphics.Color
+import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.model.User
@@ -52,6 +54,7 @@ class UserAdapter(
 
     override fun getItemCount(): Int = displayList.size
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         val user = displayList[position]
 
@@ -104,6 +107,7 @@ class UserAdapter(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun updateUserStatusInSupabase(user: User, context: Context) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -111,7 +115,7 @@ class UserAdapter(
                 supabase.postgrest["users?id=eq.${user.id}"]
                     .update(mapOf("isActive" to user.isActive))
             } catch (e: Exception) {
-                Log.e("Supabase", "Exception during update: ${e.message}")
+                AppLogger.e("Supabase", "Exception during update: ${e.message}")
             }
         }
     }
