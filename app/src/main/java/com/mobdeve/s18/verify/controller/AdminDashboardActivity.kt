@@ -89,7 +89,8 @@ class AdminDashboardActivity : BaseActivity() {
                     if (firstEntry != null) {
                         val firstEntryMarker = Marker(mapView).apply {
                             position = startPoint
-                            title = "First Entry"
+                            title = firstEntry.username
+                            subDescription = "${firstEntry.status} - ${firstEntry.location_name}"
                             setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
                             icon = ContextCompat.getDrawable(this@AdminDashboardActivity, org.osmdroid.library.R.drawable.marker_default)
                         }
@@ -109,16 +110,19 @@ class AdminDashboardActivity : BaseActivity() {
 
                         mapView.overlays.clear()
 
-                        val marker = Marker(mapView).apply {
-                            position = userLocation
-                            title = user.username
-                            subDescription = "${user.location_name} - ${user.status}"
-                            setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
-                            icon = ContextCompat.getDrawable(this@AdminDashboardActivity, org.osmdroid.library.R.drawable.marker_default)
-                        }
+                        mapView.postDelayed({
+                            val marker = Marker(mapView).apply {
+                                position = userLocation
+                                title = user.username
+                                subDescription = "${user.status} - ${user.location_name}"
+                                setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM)
+                                icon = ContextCompat.getDrawable(this@AdminDashboardActivity, org.osmdroid.library.R.drawable.marker_default)
+                            }
 
-                        mapView.overlays.add(marker)
-                        mapView.invalidate()
+                            mapView.overlays.add(marker)
+                            marker.showInfoWindow()
+                            mapView.invalidate()
+                        }, 400)
                     }
                 }
             } catch (e: Exception) {
