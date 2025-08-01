@@ -88,6 +88,7 @@ class UserAdapter(
 
         holder.toggleButton.setOnClickListener {
             if (!canToggle) {
+                AppLogger.w("AccessControl", "Unauthorized toggle attempt by $currentUserRole on user ${user.email}")
                 Toast.makeText(holder.itemView.context, "You don't have permission to update this user", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -115,7 +116,7 @@ class UserAdapter(
                 supabase.postgrest["users?id=eq.${user.id}"]
                     .update(mapOf("isActive" to user.isActive))
             } catch (e: Exception) {
-                AppLogger.e("Supabase", "Exception during update: ${e.message}")
+                AppLogger.e("Supabase", "User status update failed for user ${user.id}")
             }
         }
     }

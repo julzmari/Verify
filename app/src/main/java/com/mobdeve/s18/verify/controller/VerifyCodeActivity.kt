@@ -63,9 +63,11 @@ class VerifyCodeActivity : AppCompatActivity() {
             .build()
 
         client.newCall(request).enqueue(object : Callback {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@VerifyCodeActivity, "Network error: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@VerifyCodeActivity, "Network error for email $email", Toast.LENGTH_LONG).show()
+                    AppLogger.e("VERIFY", "Network error for email $email")
                 }
             }
 
@@ -82,6 +84,7 @@ class VerifyCodeActivity : AppCompatActivity() {
                         startActivity(intent)
                     } else {
                         Toast.makeText(this@VerifyCodeActivity, "Invalid or expired code.", Toast.LENGTH_SHORT).show()
+                        AppLogger.w("VERIFY", "Failed verification attempt for $email with code $code")
                         val intent = Intent(this@VerifyCodeActivity, ForgotPassword::class.java)
                         startActivity(intent)
                         finish()

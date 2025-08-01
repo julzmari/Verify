@@ -38,9 +38,6 @@ class UserEntryAdapter(
 
             val context = itemView.context
 
-            Log.d("UserEntryAdapter", "Binding user entry: username='${user.username}', status='${user.status}'")
-
-
             when (user.status.trim().lowercase()) {
                 "in-transit" -> status.setBackgroundColor(context.getColor(R.color.InTransit))
                 "unexpected stop" -> status.setBackgroundColor(context.getColor(R.color.UnexpectedStop))
@@ -85,7 +82,7 @@ class UserEntryAdapter(
                 val outputFormat = DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm a", Locale.getDefault())
                 return dateTime.format(outputFormat)
             } catch (e: Exception) {
-                AppLogger.e("DateFormatError", "Error parsing or formatting the date: ${e.message}")
+                AppLogger.e("DateFormatError", "Error parsing or formatting the date: $timestamp")
                 return "Invalid date"
             }
         }

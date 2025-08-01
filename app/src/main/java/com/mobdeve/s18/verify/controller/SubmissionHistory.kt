@@ -67,6 +67,7 @@ class SubmissionHistory : BaseActivity() {
 
         if (role == "admin") {
             bottomNavbar.menu.removeItem(R.id.nav_logs)
+            AppLogger.w("SubmissionHistory", "Admin role restricted: Logs menu hidden")
         }
 
         recyclerView = findViewById(R.id.submission_history_recyclerView)
@@ -99,7 +100,7 @@ class SubmissionHistory : BaseActivity() {
                     recyclerView.adapter = UserEntryAdapter(userEntriesFiltered) { }
                 }
             } catch (e: Exception) {
-                AppLogger.e("Supabase", "Error fetching user/submissions: ${e.message}")
+                AppLogger.e("Supabase", "Error fetching user/submissions")
             }
         }
 
@@ -285,7 +286,7 @@ class SubmissionHistory : BaseActivity() {
             val dateTime = LocalDateTime.parse(supabaseDateTime, supabaseFormat)
             DateTimeFormatter.ofPattern("MM-dd-yyyy hh:mm a").format(dateTime)
         } catch (e: Exception) {
-            AppLogger.e("DateFormat", "Error formatting date: $supabaseDateTime ${e.message}")
+            AppLogger.e("DateFormat", "Error formatting date: $supabaseDateTime")
             "Invalid date"
         }
     }

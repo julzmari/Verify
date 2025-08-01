@@ -290,6 +290,9 @@ class ManageUser : BaseActivity() {
                 }
                 AppLogger.d("ManageUser", "Filtered users: ${filteredUsers.size}")
 
+                if (userRole != "owner" && userRole != "admin") {
+                    AppLogger.w("AccessControl", "Unauthorized role '$userRole' attempted to access ManageUser screen")
+                }
 
                 withContext(Dispatchers.Main) {
                     userAdapter.setUsers(filteredUsers)

@@ -31,9 +31,6 @@ class ForgotPassword : AppCompatActivity() {
         supabaseUrl = app.supabase.supabaseUrl
         anonKey = app.supabase.supabaseKey
 
-
-
-
         val emailInput = findViewById<EditText>(R.id.forgot_txt_email_input)
         val sendButton = findViewById<Button>(R.id.btn_submit_reset)
 
@@ -65,12 +62,12 @@ class ForgotPassword : AppCompatActivity() {
             .post(requestBody)
             .build()
 
-
-
         client.newCall(request).enqueue(object : Callback {
+            @RequiresApi(Build.VERSION_CODES.O)
             override fun onFailure(call: Call, e: IOException) {
                 runOnUiThread {
-                    Toast.makeText(this@ForgotPassword, "Network error: ${e.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ForgotPassword, "Network error for email $email", Toast.LENGTH_LONG).show()
+                    AppLogger.e("ForgotPassword", "Network error for email $email")
                 }
             }
 

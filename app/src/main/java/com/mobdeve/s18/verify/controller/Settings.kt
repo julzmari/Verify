@@ -13,6 +13,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
@@ -40,6 +41,7 @@ class Settings : BaseActivity() {
     private lateinit var lastLoginTxt: TextView
     private lateinit var lastFailedLoginTxt: TextView
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private val pickImageLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
             val selectedImageUri: Uri? = result.data?.data
@@ -61,6 +63,7 @@ class Settings : BaseActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
@@ -107,6 +110,7 @@ class Settings : BaseActivity() {
         lastFailedLoginTxt = findViewById(R.id.latest__failed_login_txt)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun fetchUserDetails(userId: String) {
         val supabase = (application as VerifiApp).supabase
         val json = Json { ignoreUnknownKeys = true }
@@ -193,6 +197,7 @@ class Settings : BaseActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun storeProfileUrl(url: String) {
         val supabase = (application as VerifiApp).supabase
         val userId = currentUserId ?: return
@@ -213,6 +218,7 @@ class Settings : BaseActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun checkAndRequestPermission() {
         val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU)
             Manifest.permission.READ_MEDIA_IMAGES
@@ -226,12 +232,14 @@ class Settings : BaseActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun openImagePicker() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         intent.type = "image/*"
         pickImageLauncher.launch(intent)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 100 && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {

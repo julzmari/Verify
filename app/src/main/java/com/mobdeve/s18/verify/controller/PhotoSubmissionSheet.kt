@@ -12,6 +12,8 @@ import android.widget.RadioGroup
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.mobdeve.s18.verify.R
 import android.graphics.Matrix
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.core.graphics.createBitmap
 
 class PhotoSubmissionSheet(
@@ -33,16 +35,21 @@ class PhotoSubmissionSheet(
         return inflater.inflate(R.layout.dialog_photo_submission, container, false)
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         val previewImage = view.findViewById<ImageView>(R.id.previewImage)
         val statusGroup = view.findViewById<RadioGroup>(R.id.statusRadioGroup)
         val submitBtn = view.findViewById<Button>(R.id.submitBtn)
         val cancelBtn = view.findViewById<Button>(R.id.cancelBtn)
 
-        val previewBitmap = create3x4Preview(photoBitmap)
-        previewImage.setImageBitmap(previewBitmap)
+        try {
+            val previewBitmap = create3x4Preview(photoBitmap)
+            previewImage.setImageBitmap(previewBitmap)
+        } catch (e: Exception) {
+            AppLogger.e("PhotoSubmission", "Failed to generate preview")
+            dismiss()
+        }
 
-        previewImage.setImageBitmap(previewBitmap)
 
         submitBtn.setOnClickListener {
             val selectedId = statusGroup.checkedRadioButtonId
@@ -100,4 +107,3 @@ class PhotoSubmissionSheet(
         // (The original photoBitmap will be managed by the caller)
     }
 }
-

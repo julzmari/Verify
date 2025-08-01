@@ -126,7 +126,7 @@ class ResetPasswordActivity : AppCompatActivity() {
                     }
 
                 } catch (e: Exception) {
-                    Log.e("ResetPassword", "Error", e)
+                    AppLogger.e("ResetPassword", "Password change failed and rolled back")
                     showFailToast()
                 }
             }
@@ -149,6 +149,7 @@ class ResetPasswordActivity : AppCompatActivity() {
         if (repo.isPasswordReused(id, userType, newPassword)) {
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@ResetPasswordActivity, "Cannot reuse any of your last 3 passwords.", Toast.LENGTH_LONG).show()
+                AppLogger.w("ResetPassword", "Attempt to reuse password for user $id")
             }
             return
         }
@@ -181,12 +182,10 @@ class ResetPasswordActivity : AppCompatActivity() {
             supabase.postgrest[table].update(mapOf("password" to oldPassword)) { eq("id", id) }
             withContext(Dispatchers.Main) {
                 Toast.makeText(this@ResetPasswordActivity, "Password change failed. Rolled back.", Toast.LENGTH_LONG).show()
+                AppLogger.e("ResetPassword", "Password change failed and rolled back")
             }
         }
     }
-
-
-
 
     @RequiresApi(Build.VERSION_CODES.O)
     private suspend fun updateCompanyPasswordAndActivate(id: String, newPassword: String, oldPassword: String, isActive: Boolean) {
@@ -252,8 +251,6 @@ class ResetPasswordActivity : AppCompatActivity() {
         }
     }
 
-
-
     private fun goToLogin() {
         val intent = Intent(this@ResetPasswordActivity, Login::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -316,4 +313,3 @@ class ResetPasswordActivity : AppCompatActivity() {
     }
 
 }
-

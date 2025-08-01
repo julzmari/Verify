@@ -57,6 +57,7 @@ class AdminDashboardActivity : BaseActivity() {
 
         if (role == "admin") {
             bottomNav.menu.removeItem(R.id.nav_logs)
+            AppLogger.w("AdminDashboard", "Admin role: Log nav button removed from AdminDashboardActivity")
         }
     }
 

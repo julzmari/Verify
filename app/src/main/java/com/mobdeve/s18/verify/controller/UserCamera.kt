@@ -75,6 +75,7 @@ class UserCamera : AppCompatActivity() {
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun switchCamera() {
         isBackCamera = !isBackCamera
         startCamera()
@@ -134,7 +135,7 @@ class UserCamera : AppCompatActivity() {
 
                 override fun onError(exception: ImageCaptureException) {
                     super.onError(exception)
-                    Toast.makeText(this@UserCamera, "Capture failed: ${exception.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UserCamera, "Capture failed", Toast.LENGTH_SHORT).show()
                 }
             }
         )
@@ -204,16 +205,18 @@ class UserCamera : AppCompatActivity() {
                 )
 
                 // Insert the photo entry into the database
-                 supabase.postgrest["photos"].insert(newPhoto)
+                supabase.postgrest["photos"].insert(newPhoto)
 
                 withContext(Dispatchers.Main) {
                     Toast.makeText(this@UserCamera, "Photo submitted successfully", Toast.LENGTH_SHORT).show()
+                    AppLogger.i("UserCamera", "User $userId submitted a $status photo at $currentTime")
                     setResult(RESULT_OK)
                     finish() // Close the camera activity after submission
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    Toast.makeText(this@UserCamera, "Error submitting photo: ${e.message}", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UserCamera, "Error submitting photo", Toast.LENGTH_SHORT).show()
+                    AppLogger.i("UserCamera", "Error submitting photo")
                     finish()
                 }
             }
@@ -252,7 +255,7 @@ class UserCamera : AppCompatActivity() {
             }
 
         } catch (e: Exception) {
-            AppLogger.e("UploadError", "Failed to upload image: ${e.message}")
+            AppLogger.e("UploadError", "Failed to upload image")
             throw e
         }
     }
@@ -269,11 +272,13 @@ class UserCamera : AppCompatActivity() {
         return byteArrayOutputStream.toByteArray()
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
     private val requestPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             if (allPermissionsGranted()) {
                 startCamera()
             } else {
+                AppLogger.w("AccessControl", "Camera permission denied – UserCamera cannot start.")
                 Toast.makeText(this, "Camera permissions required", Toast.LENGTH_SHORT).show()
                 finish()
             }
