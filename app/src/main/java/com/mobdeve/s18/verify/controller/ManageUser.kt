@@ -14,16 +14,14 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Spinner
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.mobdeve.s18.verify.R
 import com.mobdeve.s18.verify.model.User
 import com.mobdeve.s18.verify.model.UserParcelable
-
-
-
-
+import android.view.View
 import com.mobdeve.s18.verify.app.VerifiApp
 import com.mobdeve.s18.verify.model.toUser
 import io.github.jan.supabase.postgrest.postgrest
@@ -38,11 +36,13 @@ class ManageUser : BaseActivity() {
     private lateinit var addUserLauncher: ActivityResultLauncher<Intent>
     private val users = mutableListOf<User>()
 
-
+    private lateinit var emptyUserMessageText: TextView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_admin_manage_users)
+
+        emptyUserMessageText = findViewById(R.id.emptyUserMessageText)
 
         recyclerView = findViewById(R.id.rvUsers)
         recyclerView.isNestedScrollingEnabled = true
@@ -282,6 +282,8 @@ class ManageUser : BaseActivity() {
 
                 withContext(Dispatchers.Main) {
                     userAdapter.setUsers(filteredUsers)
+                    emptyUserMessageText.visibility = if (filteredUsers.isEmpty()) View.VISIBLE else View.GONE
+                    recyclerView.visibility = if (filteredUsers.isEmpty()) View.GONE else View.VISIBLE
                 }
 
             } catch (e: Exception) {
@@ -290,4 +292,3 @@ class ManageUser : BaseActivity() {
         }
     }
 }
-
