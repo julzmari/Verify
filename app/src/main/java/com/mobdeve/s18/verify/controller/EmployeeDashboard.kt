@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
 
 class EmployeeDashboard : BaseActivity() {
 
@@ -116,9 +117,12 @@ class EmployeeDashboard : BaseActivity() {
                 }
 
 
-                val today = LocalDate.now(ZoneOffset.UTC)
-                val startOfDay = today.atStartOfDay().toString()
-                val endOfDay = today.plusDays(1).atStartOfDay().toString()
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                val today = LocalDate.now()
+                val startOfDay = today.atStartOfDay().format(formatter)
+                val endOfDay = today.plusDays(1).atStartOfDay().format(formatter)
+
+                Log.d("TimeCheck", "startOfDay=$startOfDay endOfDay=$endOfDay")
 
                 AppLogger.d("EmployeeDashboard", "Querying submissions for today ($startOfDay to $endOfDay)")
 

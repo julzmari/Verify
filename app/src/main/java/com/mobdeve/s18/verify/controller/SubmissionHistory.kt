@@ -35,6 +35,7 @@ import java.util.Locale
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import android.widget.Toast
 
 class SubmissionHistory : BaseActivity() {
 
@@ -201,6 +202,23 @@ class SubmissionHistory : BaseActivity() {
             if (statusDeliveryCheckBox.isChecked) selectedStatuses.add("Delivery")
             if (statusInTransitCheckBox.isChecked) selectedStatuses.add("In-transit")
             if (statusUnexpectedCheckBox.isChecked) selectedStatuses.add("Unexpected Stop")
+
+            if (!selectedFromDate.isNullOrEmpty() && !selectedToDate.isNullOrEmpty()) {
+                try {
+                    val formatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.getDefault())
+                    val from = formatter.parse(selectedFromDate)
+                    val to = formatter.parse(selectedToDate)
+
+                    if (from != null && to != null && from.after(to)) {
+                        Toast.makeText(this, "From Date must not be later than To date", Toast.LENGTH_SHORT).show()
+                        return@setOnClickListener
+                    }
+                } catch (e: Exception) {
+                    Log.e("DateValidation", "Invalid date format", e)
+                    Toast.makeText(this, "Invalid date selection", Toast.LENGTH_SHORT).show()
+                    return@setOnClickListener
+                }
+            }
 
             applyFilters()
             dialog.dismiss()
