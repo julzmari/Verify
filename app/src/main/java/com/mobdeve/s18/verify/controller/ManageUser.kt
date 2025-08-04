@@ -103,8 +103,9 @@ class ManageUser : BaseActivity() {
 
         val role = app.authorizedRole
 
-        if (role == "admin") {
+        if (role == "admin" || role == "owner") {
             bottomNav.menu.removeItem(R.id.nav_logs)
+            AppLogger.w("AdminDashboard", "Admin role: Log nav button removed from AdminDashboardActivity")
         }
     }
 

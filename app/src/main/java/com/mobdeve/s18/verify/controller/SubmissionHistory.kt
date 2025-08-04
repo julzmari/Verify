@@ -66,7 +66,7 @@ class SubmissionHistory : BaseActivity() {
         }
         setupBottomNavigation(bottomNavbar, R.id.nav_history)
 
-        if (role == "admin") {
+        if (role == "admin" || role == "owner") {
             bottomNavbar.menu.removeItem(R.id.nav_logs)
             AppLogger.w("SubmissionHistory", "Admin role restricted: Logs menu hidden")
         }

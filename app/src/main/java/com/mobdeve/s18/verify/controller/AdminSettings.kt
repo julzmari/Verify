@@ -99,7 +99,7 @@ class AdminSettings : BaseActivity() {
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNav2)
         setupBottomNavigation(bottomNav, R.id.nav_settings)
 
-        if (role == "admin") {
+        if (role == "admin" || role == "owner") {
             bottomNav.menu.removeItem(R.id.nav_logs)
         }
 
